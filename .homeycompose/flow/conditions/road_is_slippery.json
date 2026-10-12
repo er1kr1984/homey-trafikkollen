@@ -1,0 +1,13 @@
+{
+  "title": {
+    "en": "Roads !{{are|are not}} slippery",
+    "sv": "Vägarna !{{är|är inte}} hala"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=road"
+    }
+  ]
+}

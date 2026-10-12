@@ -1,0 +1,122 @@
+{
+  "id": "com.erikrichardson.trafik",
+  "version": "1.0.0",
+  "compatibility": ">=12.1.0",
+  "runtime": "nodejs",
+  "sdk": 3,
+  "platforms": [
+    "local"
+  ],
+  "brandColor": "#0b5394",
+  "name": {
+    "en": "Trafikkollen",
+    "sv": "Trafikkollen"
+  },
+  "description": {
+    "en": "Live departures, door-to-door commutes, road traffic, ferries and smart morning alerts for all of Sweden.",
+    "sv": "Avgångar i realtid, pendling från dörr till dörr, vägtrafik, färjor och smarta morgonlarm för hela Sverige."
+  },
+  "category": [
+    "tools"
+  ],
+  "tags": {
+    "en": [
+      "avgångar",
+      "bus",
+      "commute",
+      "departures",
+      "engine heater",
+      "ferry",
+      "road traffic",
+      "school bus",
+      "skånetrafiken",
+      "sl",
+      "sweden",
+      "trafik",
+      "trafiklab",
+      "trafikverket",
+      "train",
+      "västtrafik"
+    ],
+    "sv": [
+      "avgångar",
+      "buss",
+      "färja",
+      "kollektivtrafik",
+      "motorvärmare",
+      "pendling",
+      "skolbuss",
+      "skånetrafiken",
+      "sl",
+      "trafik",
+      "trafiklab",
+      "trafikverket",
+      "tåg",
+      "väglag",
+      "västtrafik"
+    ]
+  },
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "permissions": [
+    "homey:manager:geolocation"
+  ],
+  "author": {
+    "name": "Erik Richardson"
+  },
+  "support": "https://github.com/er1kr1984/homey-trafikkollen/issues",
+  "homeyCommunityTopicId": 160770,
+  "source": "https://github.com/er1kr1984/homey-trafikkollen",
+  "bugs": {
+    "url": "https://github.com/er1kr1984/homey-trafikkollen/issues"
+  },
+  "api": {
+    "testKeys": {
+      "method": "POST",
+      "path": "/test-keys"
+    },
+    "getBoard": {
+      "method": "GET",
+      "path": "/board"
+    },
+    "getCommute": {
+      "method": "GET",
+      "path": "/commute"
+    },
+    "searchStops": {
+      "method": "GET",
+      "path": "/stops"
+    },
+    "roadOptions": {
+      "method": "GET",
+      "path": "/road-options"
+    },
+    "nearbyBoard": {
+      "method": "GET",
+      "path": "/nearby-board"
+    },
+    "searchCameras": {
+      "method": "GET",
+      "path": "/cameras"
+    },
+    "geocode": {
+      "method": "GET",
+      "path": "/geocode"
+    },
+    "nearbyStops": {
+      "method": "GET",
+      "path": "/nearby"
+    },
+    "suggestTransfers": {
+      "method": "POST",
+      "path": "/suggest-transfers"
+    },
+    "previewCommute": {
+      "method": "POST",
+      "path": "/commute-preview"
+    }
+  }
+}

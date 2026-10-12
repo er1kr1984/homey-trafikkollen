@@ -1,0 +1,79 @@
+'use strict';
+
+const test = require('node:test');
+const assert = require('node:assert');
+const J = require('../lib/journey');
+const { nextWindow, parseConfigs } = require('../lib/commute');
+
+const T0 = Date.UTC(2026, 9, 13, 5, 0); // 07:00 Stockholm
+const m = (min) => T0 + min * 60000;
+const v = (key, line, at, o = {}) => ({
+  key, line, mode: o.mode || 'BUS', direction: o.dir || 'Uppsala C', scheduled: m(at), expected: m(at + (o.delay || 0)),
+  delayMin: o.delay || 0, canceled: !!o.canceled, stop: o.stop || '',
+});
+
+const home = [
+  v('b1', '801', 0), v('t1', '40', 14, { mode: 'TRAIN', dir: 'Stockholm C' }), v('b2', '801', 15), v('x', '809', 16, { dir: 'Märsta' }),
+];
+const hubArr = [v('b1', '801', 39, { stop: 'Uppsala C' }), v('t1', '40', 56, { stop: 'Uppsala C' }), v('b2', '801', 54, { stop: 'Uppsala C' })];
+const hubDep = [v('tr1', '1', 41, { mode: 'TRAM' }), v('tr2', '1', 45, { mode: 'TRAM' }), v('tr3', '1', 57, { mode: 'TRAM' }), v('tr4', '1', 60, { mode: 'TRAM' }),
+  v('s6', '6', 50, { dir: 'Gottsunda' })];
+const work = [v('tr1', '1', 47), v('tr2', '1', 51), v('tr3', '1', 63), v('tr4', '1', 66), v('s6', '6', 40) /* passes Science Park before Uppsala C */];
+
+const opts = (over = {}) => ({
+  first: home, transfer: { arrivals: hubArr, departures: hubDep }, dests: [{ name: 'Science Park', walk: 8, arrivals: work }],
+  walkTo: 5, change: 3, now: m(-10), ...over,
+});
+
+test('journey: follows trips through the change, respects change time and direction', () => {
+  const js = J.build(opts());
+  // bus b1 arrives 39 -> tram 41 is too tight (3 min change) -> tram 45 -> 51 + 8 walk
+  assert.strictEqual(js[0].legs[0].dep.key, 'b1');
+  assert.strictEqual(js[0].legs[1].dep.key, 'tr2');
+  assert.strictEqual(js[0].arrive, m(59));
+  assert.strictEqual(js[0].leave, m(-5));
+  assert.strictEqual(js[0].slack, 3);
+  // the 809 to Märsta never reaches Uppsala; bus 6 towards Gottsunda reached Science Park before Uppsala C
+  assert.ok(!js.some((j) => j.legs[0].dep.key === 'x'));
+  assert.ok(!js.some((j) => j.legs[1] && j.legs[1].dep.key === 's6'));
+});
+
+test('journey: drops options that leave earlier and arrive no sooner (train vs later bus)', () => {
+  const js = J.build(opts());
+  // train 14 -> Uppsala 56 -> tram 60 -> 66+8; bus 15 -> 54 -> tram 57 -> 63+8: the bus wins
+  assert.deepStrictEqual(js.map((j) => j.legs[0].dep.key), ['b1', 'b2']);
+});
+
+test('journey: delays propagate and cancelled departures are shown for known routes only', () => {
+  const late = [v('b1', '801', 0, { delay: 4 }), v('b2', '801', 15, { canceled: true }), v('c', '999', 20, { canceled: true })];
+  const arr = [v('b1', '801', 43, { stop: 'Uppsala C' })];
+  const js = J.build(opts({ first: late, transfer: { arrivals: arr, departures: hubDep } }));
+  assert.strictEqual(js[0].legs[1].dep.key, 'tr3'); // 43 + 3 -> 57
+  assert.strictEqual(js[0].problem, true);
+  assert.deepStrictEqual(js.filter((j) => j.canceled).map((j) => j.legs[0].dep.key), ['b2']);
+});
+
+test('journey: direct trips to a destination stop', () => {
+  const js = J.build({ first: [v('d', '103', 0)], transfer: null, dests: [{ name: 'Science Park', walk: 5, arrivals: [v('d', '103', 50)] }], now: m(-5) });
+  assert.strictEqual(js.length, 1);
+  assert.strictEqual(js[0].arrive, m(55));
+  assert.strictEqual(js[0].slack, null);
+});
+
+test('commute: next window skips to the next weekday after the window has passed', () => {
+  const cfg = { active_hours: '06:30-09:00', weekdays_only: true };
+  const fri = Date.UTC(2026, 9, 16, 10, 0); // Fri 12:00 local
+  const [s, e] = nextWindow(fri, 'Europe/Stockholm', cfg);
+  assert.strictEqual(new Date(s).toISOString(), '2026-10-19T04:30:00.000Z'); // Monday 06:30
+  assert.strictEqual(new Date(e).toISOString(), '2026-10-19T07:00:00.000Z');
+  const [s2] = nextWindow(Date.UTC(2026, 9, 13, 5, 0), 'Europe/Stockholm', cfg); // Tue 07:00 -> today
+  assert.strictEqual(new Date(s2).toISOString(), '2026-10-13T04:30:00.000Z');
+});
+
+test('commute: config validation', () => {
+  assert.throws(() => parseConfigs([{ id: 'a' }]), /origin/);
+  const [c] = parseConfigs('[{"origin":{"id":1},"destinations":[{"id":2,"walk":"8"}]}]');
+  assert.strictEqual(c.id, 'commute1');
+  assert.strictEqual(c.destinations[0].walk, 8);
+  assert.strictEqual(c.change_minutes, 3);
+});

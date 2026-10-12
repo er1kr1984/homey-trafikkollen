@@ -1,0 +1,13 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Incidents",
+    "sv": "Händelser"
+  },
+  "decimals": 0,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/capabilities/warning.svg",
+  "insights": true
+}

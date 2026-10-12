@@ -1,0 +1,78 @@
+{
+  "title": {
+    "en": "Time to leave for a commute",
+    "sv": "Dags att gå för en pendling"
+  },
+  "titleFormatted": {
+    "en": "Time to leave for [[commute]]",
+    "sv": "Dags att gå för [[commute]]"
+  },
+  "hint": {
+    "en": "Fires a few minutes before you need to leave home to arrive on time. Needs an \"arrive by\" time in the commute (app settings). Uses live delays, and picks the latest trip that still gets you there in time.",
+    "sv": "Körs några minuter innan du behöver gå hemifrån för att komma fram i tid. Kräver en \"framme senast\"-tid i pendlingen (appinställningarna). Använder förseningar i realtid och väljer den senaste resan som ändå kommer fram i tid."
+  },
+  "args": [
+    {
+      "name": "commute",
+      "type": "autocomplete",
+      "title": {
+        "en": "Commute",
+        "sv": "Pendling"
+      },
+      "placeholder": {
+        "en": "Pick a commute",
+        "sv": "Välj en pendling"
+      }
+    }
+  ],
+  "tokens": [
+    {
+      "name": "text",
+      "type": "string",
+      "title": {
+        "en": "Message",
+        "sv": "Meddelande"
+      },
+      "example": {
+        "en": "Leave in 5 min: bus 165 at 07:15, there at 08:11",
+        "sv": "Gå om 5 min: buss 165 07:15, framme 08:11"
+      }
+    },
+    {
+      "name": "leave",
+      "type": "string",
+      "title": {
+        "en": "Leave at",
+        "sv": "Gå kl."
+      },
+      "example": "07:10"
+    },
+    {
+      "name": "arrive",
+      "type": "string",
+      "title": {
+        "en": "Arrive at",
+        "sv": "Framme kl."
+      },
+      "example": "08:11"
+    },
+    {
+      "name": "minutes",
+      "type": "number",
+      "title": {
+        "en": "Minutes until you leave",
+        "sv": "Minuter tills du går"
+      },
+      "example": 5
+    },
+    {
+      "name": "late",
+      "type": "boolean",
+      "title": {
+        "en": "Will be late",
+        "sv": "Blir sen"
+      },
+      "example": false
+    }
+  ]
+}

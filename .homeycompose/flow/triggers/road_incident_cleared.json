@@ -1,0 +1,51 @@
+{
+  "title": {
+    "en": "A road incident is cleared",
+    "sv": "En trafikhändelse är över"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=road"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "text",
+      "type": "string",
+      "title": {
+        "en": "Message",
+        "sv": "Meddelande"
+      },
+      "example": "Cleared: Olycka on E65"
+    },
+    {
+      "name": "type",
+      "type": "string",
+      "title": {
+        "en": "Type",
+        "sv": "Typ"
+      },
+      "example": "Olycka"
+    },
+    {
+      "name": "road",
+      "type": "string",
+      "title": {
+        "en": "Road",
+        "sv": "Väg"
+      },
+      "example": "E65"
+    },
+    {
+      "name": "location",
+      "type": "string",
+      "title": {
+        "en": "Location",
+        "sv": "Plats"
+      },
+      "example": "Uppsala - Stockholm"
+    }
+  ]
+}

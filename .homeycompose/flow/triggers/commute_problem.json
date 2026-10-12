@@ -1,0 +1,51 @@
+{
+  "title": {
+    "en": "There is a problem on a commute",
+    "sv": "Det är problem på en pendling"
+  },
+  "titleFormatted": {
+    "en": "There is a problem on [[commute]]",
+    "sv": "Det är problem på [[commute]]"
+  },
+  "hint": {
+    "en": "Fires in the commute hours when something new goes wrong: a cancelled or late trip, a message about your lines, an accident or other message on the car route (not roadworks), slippery roads or a queue. Each problem fires once a day. Turn on \"Problem alerts\" for the commute in the app settings.",
+    "sv": "Körs under pendlingstiden när något nytt går fel: en inställd eller sen avgång, ett meddelande om dina linjer, en olycka eller annat meddelande på bilvägen (inte vägarbeten), halt väglag eller kö. Varje problem körs en gång per dag. Slå på \"Larm vid problem\" för pendlingen i appinställningarna."
+  },
+  "args": [
+    {
+      "name": "commute",
+      "type": "autocomplete",
+      "title": { "en": "Commute", "sv": "Pendling" },
+      "placeholder": { "en": "Pick a commute", "sv": "Välj en pendling" }
+    }
+  ],
+  "tokens": [
+    {
+      "name": "text",
+      "type": "string",
+      "title": { "en": "Message", "sv": "Meddelande" },
+      "example": {
+        "en": "Home → Work: bus 5 at 07:15 is 9 min late · Accident on road E4 (Uppsala S)",
+        "sv": "Hem → Jobbet: buss 5 07:15 är 9 min sen · Olycka på väg E4 (Uppsala S)"
+      }
+    },
+    {
+      "name": "transit",
+      "type": "boolean",
+      "title": { "en": "Public transport problem", "sv": "Problem i kollektivtrafiken" },
+      "example": true
+    },
+    {
+      "name": "road",
+      "type": "boolean",
+      "title": { "en": "Road problem", "sv": "Problem på vägen" },
+      "example": false
+    },
+    {
+      "name": "count",
+      "type": "number",
+      "title": { "en": "Number of problems", "sv": "Antal problem" },
+      "example": 2
+    }
+  ]
+}

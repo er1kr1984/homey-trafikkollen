@@ -1,0 +1,20 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Delayed or cancelled",
+    "sv": "Försenad eller inställd"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/capabilities/delay.svg",
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Delay/cancellation",
+    "sv": "Försening/inställd"
+  },
+  "insightsTitleFalse": {
+    "en": "On time",
+    "sv": "I tid"
+  }
+}

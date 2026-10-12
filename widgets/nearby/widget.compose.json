@@ -1,0 +1,32 @@
+{
+  "name": { "en": "Departures near me", "sv": "Avgångar nära mig" },
+  "height": 300,
+  "transparent": false,
+  "settings": [
+    {
+      "id": "stops",
+      "type": "number",
+      "title": { "en": "Number of stops", "sv": "Antal hållplatser" },
+      "value": 3,
+      "min": 1,
+      "max": 4
+    },
+    {
+      "id": "rows",
+      "type": "number",
+      "title": { "en": "Departures per stop", "sv": "Avgångar per hållplats" },
+      "value": 3,
+      "min": 1,
+      "max": 8
+    },
+    {
+      "id": "taxi",
+      "type": "checkbox",
+      "title": { "en": "Include on-demand services (anropsstyrd trafik)", "sv": "Ta med anropsstyrd trafik" },
+      "value": false
+    }
+  ],
+  "api": {
+    "getNearby": { "method": "GET", "path": "/nearby" }
+  }
+}

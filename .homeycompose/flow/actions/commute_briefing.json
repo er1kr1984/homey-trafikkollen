@@ -1,0 +1,69 @@
+{
+  "title": {
+    "en": "Get the commute briefing",
+    "sv": "Hämta pendlingsbesked"
+  },
+  "titleFormatted": {
+    "en": "Get the briefing for [[commute]]",
+    "sv": "Hämta beskedet för [[commute]]"
+  },
+  "hint": {
+    "en": "Makes a short summary: when to leave and which trip, the car route, weather and frost. Use the Briefing tag in a notification, or let Homey say it. Example: When the time is 06:45 → Get the briefing → Send a push notification with Briefing.",
+    "sv": "Gör en kort sammanfattning: när du ska gå och vilken resa, bilvägen, vädret och frost. Använd taggen Besked i en notis, eller låt Homey säga det. Exempel: När klockan är 06:45 → Hämta beskedet → Skicka en pushnotis med Besked."
+  },
+  "args": [
+    {
+      "name": "commute",
+      "type": "autocomplete",
+      "title": {
+        "en": "Commute",
+        "sv": "Pendling"
+      },
+      "placeholder": {
+        "en": "Pick a commute",
+        "sv": "Välj en pendling"
+      }
+    }
+  ],
+  "tokens": [
+    {
+      "name": "briefing",
+      "type": "string",
+      "title": {
+        "en": "Briefing",
+        "sv": "Besked"
+      },
+      "example": {
+        "en": "Home → Work: Leave at 07:10: bus 5 at 07:15. There at 08:11. By car about 30 min. 1° and clear. Frost likely: scrape the car.",
+        "sv": "Hem → Jobbet: Gå 07:10: buss 5 07:15. Framme 08:11. Med bil cirka 30 min. 1° och klart. Risk för frost: skrapa bilen."
+      }
+    },
+    {
+      "name": "leave",
+      "type": "string",
+      "title": {
+        "en": "Leave at",
+        "sv": "Gå kl."
+      },
+      "example": "07:10"
+    },
+    {
+      "name": "arrive",
+      "type": "string",
+      "title": {
+        "en": "Arrive at",
+        "sv": "Framme kl."
+      },
+      "example": "08:11"
+    },
+    {
+      "name": "temperature",
+      "type": "number",
+      "title": {
+        "en": "Temperature when you leave (°C)",
+        "sv": "Temperatur när du åker (°C)"
+      },
+      "example": 1
+    }
+  ]
+}

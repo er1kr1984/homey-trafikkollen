@@ -1,0 +1,51 @@
+<style>
+  .tk-list { list-style: none; padding: 0; margin: 8px 0 0; }
+  .tk-list li { padding: 10px 4px; border-bottom: 1px solid rgba(128,128,128,.25); cursor: pointer; }
+  .tk-list li:hover { background: rgba(128,128,128,.1); }
+  .tk-sub { font-size: 12px; opacity: .7; }
+  .tk-msg { margin: 10px 0; opacity: .8; font-size: 14px; }
+</style>
+
+<header class="homey-header">
+  <h1 class="homey-title" id="tk-title" data-i18n="ferry.pickTitle"></h1>
+  <p class="homey-subtitle" id="tk-sub" data-i18n="ferry.pickSub"></p>
+</header>
+<input class="homey-form-input" id="tk-q" type="search" autocomplete="off" data-i18n-ph="ferry.searchPh" />
+<div class="tk-msg" id="tk-msg"></div>
+<ul class="tk-list" id="tk-list"></ul>
+
+<script type="application/javascript">
+  const T = (k, v) => String(Homey.__(k)).replace(/{{\s*(\w+)\s*}}/g, (_, n) => (v && v[n] != null ? v[n] : ''));
+  document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = Homey.__(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach((el) => { el.placeholder = Homey.__(el.dataset.i18nPh); });
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let routes = [];
+
+  function showRoutes() {
+    const q = $('tk-q').value.trim().toLowerCase();
+    const list = routes.filter((r) => !q || r.name.toLowerCase().includes(q) || r.harbors.some((h) => h.name.toLowerCase().includes(q)));
+    $('tk-msg').textContent = list.length ? '' : T('ferry.noneFound');
+    $('tk-list').innerHTML = list.map((r, i) => `<li data-i="${routes.indexOf(r)}"><div>${esc(r.name)}</div>
+      <div class="tk-sub">${esc(r.harbors.map((h) => h.name).join(' ⇄ '))}${r.km != null ? ` · ${esc(T('ferry.km', { km: r.km }))}` : ''}</div></li>`).join('');
+    $('tk-list').querySelectorAll('li').forEach((li) => li.addEventListener('click', () => pickHarbor(routes[+li.dataset.i])));
+  }
+
+  function pickHarbor(route) {
+    $('tk-q').style.display = 'none';
+    $('tk-title').textContent = route.name;
+    $('tk-sub').textContent = T('ferry.fromWhere');
+    $('tk-list').innerHTML = route.harbors.map((h, i) => `<li data-i="${i}"><div>${esc(T('ferry.from', { name: h.name }))}</div></li>`).join('');
+    $('tk-list').querySelectorAll('li').forEach((li) => li.addEventListener('click', async () => {
+      try {
+        const device = await Homey.emit('create', { route, harbor: route.harbors[+li.dataset.i] });
+        await Homey.createDevice(device);
+        Homey.done();
+      } catch (e) { Homey.alert(e.message || String(e)); }
+    }));
+  }
+
+  $('tk-msg').textContent = T('common.searching');
+  Homey.emit('routes').then((r) => { routes = r; showRoutes(); }).catch((e) => { $('tk-msg').textContent = e.message || String(e); });
+  $('tk-q').addEventListener('input', showRoutes);
+</script>

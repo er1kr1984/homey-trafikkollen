@@ -1,0 +1,33 @@
+{
+  "title": {
+    "en": "Slippery-road warning turned on or off",
+    "sv": "Halkvarning slogs på eller av"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=road"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "slippery",
+      "type": "boolean",
+      "title": {
+        "en": "Slippery",
+        "sv": "Halt"
+      },
+      "example": true
+    },
+    {
+      "name": "text",
+      "type": "string",
+      "title": {
+        "en": "Message",
+        "sv": "Meddelande"
+      },
+      "example": "Slippery roads on E65: Is- och snövägbana"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "title": {
+    "en": "Change the traffic camera",
+    "sv": "Byt trafikkamera"
+  },
+  "titleFormatted": {
+    "en": "Show traffic camera [[camera]]",
+    "sv": "Visa trafikkamera [[camera]]"
+  },
+  "hint": {
+    "en": "Changes which traffic camera the device shows. Start typing a place name, for example Uppsala, and pick from the list. Leave it empty to see the cameras closest to the device.",
+    "sv": "Byter vilken trafikkamera enheten visar. Börja skriva ett ortnamn, till exempel Uppsala, och välj i listan. Lämna tomt för att se kamerorna närmast enheten."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=road"
+    },
+    {
+      "name": "camera",
+      "type": "autocomplete",
+      "title": {
+        "en": "Camera",
+        "sv": "Kamera"
+      },
+      "placeholder": {
+        "en": "e.g. Uppsala",
+        "sv": "t.ex. Uppsala"
+      }
+    }
+  ]
+}

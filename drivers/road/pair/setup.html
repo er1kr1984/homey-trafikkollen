@@ -1,0 +1,84 @@
+<style>
+  .tk-field { margin-bottom: 14px; }
+  .tk-field label { display: block; margin-bottom: 4px; font-weight: 500; }
+  .tk-hint { font-size: 12px; opacity: .7; margin-top: 3px; }
+  .tk-two { display: flex; gap: 8px; }
+  .tk-two > div { flex: 1; }
+  .tk-cams { list-style: none; padding: 0; margin: 4px 0 0; }
+  .tk-cams li { display: flex; gap: 8px; align-items: center; padding: 6px 2px; border-bottom: 1px solid rgba(128,128,128,.25); cursor: pointer; font-size: 14px; }
+  .tk-cams img { width: 72px; height: 45px; object-fit: cover; border-radius: 5px; flex: none; }
+  .tk-warn { padding: 8px; border-radius: 6px; background: rgba(255,170,0,.15); margin-bottom: 12px; display: none; }
+</style>
+
+<header class="homey-header">
+  <h1 class="homey-title" data-i18n="pair.road.title"></h1>
+  <p class="homey-subtitle" data-i18n="pair.road.subtitle"></p>
+</header>
+
+<div class="tk-warn" id="tk-warn" data-i18n="pair.road.noKey"></div>
+
+<div class="tk-field">
+  <label for="tk-name" data-i18n="pair.road.name"></label>
+  <input class="homey-form-input" id="tk-name" type="text" data-i18n-ph="pair.road.namePh" />
+</div>
+<div class="tk-field">
+  <label for="tk-roads" data-i18n="pair.road.roads"></label>
+  <input class="homey-form-input" id="tk-roads" type="text" data-i18n-ph="pair.road.roadsPh" />
+  <div class="tk-hint" data-i18n="pair.road.roadsHint"></div>
+</div>
+<div class="tk-two tk-field">
+  <div><label for="tk-lat" data-i18n="pair.road.lat"></label><input class="homey-form-input" id="tk-lat" type="number" step="0.0001" /></div>
+  <div><label for="tk-lon" data-i18n="pair.road.lon"></label><input class="homey-form-input" id="tk-lon" type="number" step="0.0001" /></div>
+</div>
+<div class="tk-hint" style="margin-top:-10px;margin-bottom:14px" data-i18n="pair.road.centreHint"></div>
+<div class="tk-field">
+  <label for="tk-radius" data-i18n="pair.road.radius"></label>
+  <input class="homey-form-input" id="tk-radius" type="number" min="1" max="200" value="15" />
+</div>
+<div class="tk-field">
+  <label for="tk-cam" data-i18n="camera.label"></label>
+  <input class="homey-form-input" id="tk-cam" type="search" autocomplete="off" data-i18n-ph="camera.ph" />
+  <ul class="tk-cams" id="tk-cams"></ul>
+</div>
+<button class="homey-button-primary-full" id="tk-add" data-i18n="pair.road.add"></button>
+
+<script type="application/javascript">
+  const T = (k, v) => { const s = Homey.__(k); return String(s).replace(/{{\s*(\w+)\s*}}/g, (_, n) => (v && v[n] != null ? v[n] : '')); }; // fills {{placeholders}} itself
+  const $ = (id) => document.getElementById(id);
+  document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = Homey.__(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach((el) => { el.placeholder = Homey.__(el.dataset.i18nPh); });
+  Homey.emit('defaults').then((d) => {
+    if (d.lat != null) $('tk-lat').value = d.lat.toFixed(4);
+    if (d.lon != null) $('tk-lon').value = d.lon.toFixed(4);
+    if (!d.hasKey) $('tk-warn').style.display = 'block';
+  }).catch(() => {});
+  // camera suggestions while typing (any camera in Sweden, nearest to the centre first)
+  let camTimer = null; let camSeq = 0;
+  $('tk-cam').addEventListener('input', () => {
+    clearTimeout(camTimer);
+    camTimer = setTimeout(async () => {
+      const q = $('tk-cam').value.trim(); const my = ++camSeq;
+      if (!q) { $('tk-cams').innerHTML = ''; return; }
+      try {
+        const list = await Homey.emit('cameras', { q, lat: $('tk-lat').value, lon: $('tk-lon').value });
+        if (my !== camSeq) return;
+        const esc = (x) => String(x ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        $('tk-cams').innerHTML = list.length ? list.slice(0, 8).map((c, i) => `<li data-i="${i}"><img loading="lazy" src="${esc(c.photoUrl)}" alt=""><span>${esc(c.name)}${c.km != null ? ` · ${esc(T('camera.km', { km: c.km }))}` : ''}</span></li>`).join('')
+          : `<li>${esc(T('camera.none'))}</li>`;
+        $('tk-cams').querySelectorAll('li[data-i]').forEach((li) => li.addEventListener('click', () => {
+          $('tk-cam').value = list[+li.dataset.i].name; $('tk-cams').innerHTML = '';
+        }));
+      } catch (e) { $('tk-cams').innerHTML = ''; }
+    }, 250);
+  });
+  $('tk-add').addEventListener('click', async () => {
+    try {
+      const device = await Homey.emit('create', {
+        name: $('tk-name').value, roads: $('tk-roads').value,
+        lat: $('tk-lat').value, lon: $('tk-lon').value, radius_km: $('tk-radius').value, camera: $('tk-cam').value,
+      });
+      await Homey.createDevice(device);
+      Homey.done();
+    } catch (e) { Homey.alert(e.message || String(e)); }
+  });
+</script>

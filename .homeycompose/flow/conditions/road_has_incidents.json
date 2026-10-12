@@ -1,0 +1,13 @@
+{
+  "title": {
+    "en": "There !{{are|are no}} road incidents",
+    "sv": "Det !{{finns|finns inga}} trafikhändelser"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=road"
+    }
+  ]
+}

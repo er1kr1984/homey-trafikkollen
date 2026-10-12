@@ -1,0 +1,31 @@
+{
+  "name": {
+    "en": "Departure board",
+    "sv": "Avgångstavla"
+  },
+  "class": "sensor",
+  "capabilities": [
+    "dep_next",
+    "dep_minutes",
+    "dep_leave_in",
+    "dep_delay",
+    "alarm_dep_problem",
+    "dep_upcoming"
+  ],
+  "platforms": [
+    "local"
+  ],
+  "connectivity": [
+    "cloud"
+  ],
+  "images": {
+    "small": "/drivers/departures/assets/images/small.png",
+    "large": "/drivers/departures/assets/images/large.png",
+    "xlarge": "/drivers/departures/assets/images/xlarge.png"
+  },
+  "pair": [
+    {
+      "id": "search"
+    }
+  ]
+}

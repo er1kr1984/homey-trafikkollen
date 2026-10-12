@@ -1,0 +1,28 @@
+{
+  "title": {
+    "en": "Public transport gets me there in time",
+    "sv": "Kollektivtrafiken hinner fram i tid"
+  },
+  "titleFormatted": {
+    "en": "Public transport !{{gets|does not get}} me there in time for [[commute]]",
+    "sv": "Kollektivtrafiken !{{hinner|hinner inte}} fram i tid för [[commute]]"
+  },
+  "hint": {
+    "en": "Compares the live trips with the commute's \"arrive by\" time. Handy for: if not, take the car.",
+    "sv": "Jämför resorna i realtid med pendlingens \"framme senast\"-tid. Praktiskt för: om inte, ta bilen."
+  },
+  "args": [
+    {
+      "name": "commute",
+      "type": "autocomplete",
+      "title": {
+        "en": "Commute",
+        "sv": "Pendling"
+      },
+      "placeholder": {
+        "en": "Pick a commute",
+        "sv": "Välj en pendling"
+      }
+    }
+  ]
+}

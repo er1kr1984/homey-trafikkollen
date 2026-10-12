@@ -1,0 +1,44 @@
+{
+  "name": {
+    "en": "Departure board",
+    "sv": "Avgångstavla"
+  },
+  "height": 260,
+  "transparent": false,
+  "settings": [
+    {
+      "id": "device",
+      "type": "autocomplete",
+      "title": {
+        "en": "Departure board or ferry (device)",
+        "sv": "Avgångstavla eller färja (enhet)"
+      }
+    },
+    {
+      "id": "rows",
+      "type": "number",
+      "title": {
+        "en": "Rows",
+        "sv": "Rader"
+      },
+      "value": 6,
+      "min": 1,
+      "max": 12
+    },
+    {
+      "id": "title",
+      "type": "text",
+      "title": {
+        "en": "Title (empty = device name)",
+        "sv": "Rubrik (tom = enhetens namn)"
+      },
+      "value": ""
+    }
+  ],
+  "api": {
+    "getBoard": {
+      "method": "GET",
+      "path": "/board"
+    }
+  }
+}

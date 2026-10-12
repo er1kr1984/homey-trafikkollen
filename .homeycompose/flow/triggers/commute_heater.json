@@ -1,0 +1,57 @@
+{
+  "title": {
+    "en": "Time to turn on the engine heater",
+    "sv": "Dags att sätta på motorvärmaren"
+  },
+  "titleFormatted": {
+    "en": "Time to turn on the engine heater for [[commute]]",
+    "sv": "Dags att sätta på motorvärmaren för [[commute]]"
+  },
+  "hint": {
+    "en": "Fires on commute days when it's time to switch on the engine heater, based on the forecast temperature when you leave by car: ½ hour below +10°, 1 hour below 0°, 1½ hours below -10°, 2 hours below -20°. Needs an \"arrive by\" time and the car route in the commute. Turn it off again with a timer or when you leave.",
+    "sv": "Körs på pendlingsdagar när det är dags att slå på motorvärmaren, utifrån prognosen för temperaturen när du åker med bil: ½ timme under +10°, 1 timme under 0°, 1½ timme under -10°, 2 timmar under -20°. Kräver en \"framme senast\"-tid och bilvägen i pendlingen. Stäng av den med en timer eller när du åker."
+  },
+  "args": [
+    {
+      "name": "commute",
+      "type": "autocomplete",
+      "title": {
+        "en": "Commute",
+        "sv": "Pendling"
+      },
+      "placeholder": {
+        "en": "Pick a commute",
+        "sv": "Välj en pendling"
+      }
+    }
+  ],
+  "tokens": [
+    {
+      "name": "temperature",
+      "type": "number",
+      "title": {
+        "en": "Temperature when you leave (°C)",
+        "sv": "Temperatur när du åker (°C)"
+      },
+      "example": -4
+    },
+    {
+      "name": "minutes",
+      "type": "number",
+      "title": {
+        "en": "Heater time (min)",
+        "sv": "Värmartid (min)"
+      },
+      "example": 60
+    },
+    {
+      "name": "leave",
+      "type": "string",
+      "title": {
+        "en": "Leave at",
+        "sv": "Åk kl."
+      },
+      "example": "07:30"
+    }
+  ]
+}

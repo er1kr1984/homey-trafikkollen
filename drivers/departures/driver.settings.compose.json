@@ -1,0 +1,236 @@
+[
+  {
+    "type": "group",
+    "label": {
+      "en": "Which departures",
+      "sv": "Vilka avgångar"
+    },
+    "children": [
+      {
+        "id": "lines",
+        "type": "text",
+        "label": {
+          "en": "Lines",
+          "sv": "Linjer"
+        },
+        "value": "",
+        "hint": {
+          "en": "Comma-separated line numbers/names to include, e.g. '1043, 5'. Empty = all lines.",
+          "sv": "Kommaseparerade linjenummer/namn att ta med, t.ex. '1043, 5'. Tomt = alla linjer."
+        }
+      },
+      {
+        "id": "destination",
+        "type": "text",
+        "label": {
+          "en": "Direction contains",
+          "sv": "Riktningen innehåller"
+        },
+        "value": "",
+        "hint": {
+          "en": "Only departures whose direction/destination contains one of these words (comma-separated), e.g. 'Stockholm'. Put - in front of a word to exclude it: 'Stockholm, -Arlanda'. Empty = all.",
+          "sv": "Bara avgångar vars riktning/destination innehåller något av dessa ord (kommaseparerade), t.ex. 'Stockholm'. Sätt - framför ett ord för att utesluta det: 'Stockholm, -Arlanda'. Tomt = alla."
+        }
+      },
+      {
+        "id": "mode",
+        "type": "dropdown",
+        "label": {
+          "en": "Transport type",
+          "sv": "Trafikslag"
+        },
+        "value": "any",
+        "values": [
+          {
+            "id": "any",
+            "label": {
+              "en": "Any",
+              "sv": "Alla"
+            }
+          },
+          {
+            "id": "TRAIN",
+            "label": {
+              "en": "Train",
+              "sv": "Tåg"
+            }
+          },
+          {
+            "id": "BUS",
+            "label": {
+              "en": "Bus",
+              "sv": "Buss"
+            }
+          },
+          {
+            "id": "TRAM",
+            "label": {
+              "en": "Tram",
+              "sv": "Spårvagn"
+            }
+          },
+          {
+            "id": "METRO",
+            "label": {
+              "en": "Metro",
+              "sv": "Tunnelbana"
+            }
+          },
+          {
+            "id": "BOAT",
+            "label": {
+              "en": "Boat",
+              "sv": "Båt"
+            }
+          }
+        ]
+      },
+      {
+        "id": "platform",
+        "type": "text",
+        "label": {
+          "en": "Platform/stop letter",
+          "sv": "Läge/hållplatsläge"
+        },
+        "value": "",
+        "hint": {
+          "en": "Only this platform or stop position, e.g. '2' or 'B'. Empty = all.",
+          "sv": "Bara detta spår eller hållplatsläge, t.ex. '2' eller 'B'. Tomt = alla."
+        }
+      },
+      {
+        "id": "times",
+        "type": "text",
+        "label": {
+          "en": "Only these departure times",
+          "sv": "Bara dessa avgångstider"
+        },
+        "value": "",
+        "hint": {
+          "en": "To watch one particular bus or train, for example the school bus: write its departure time(s) from the timetable, like 07:40 or 07:40, 15:10. Then the board and all alerts are only about those trips. Leave empty for all departures.",
+          "sv": "För att bevaka en viss buss eller ett visst tåg, till exempel skolbussen: skriv avgångstiden/tiderna från tidtabellen, som 07:40 eller 07:40, 15:10. Då handlar tavlan och alla larm bara om de turerna. Lämna tomt för alla avgångar."
+        }
+      }
+    ]
+  },
+  {
+    "type": "group",
+    "label": {
+      "en": "Reminders and alerts",
+      "sv": "Påminnelser och larm"
+    },
+    "children": [
+      {
+        "id": "walk_minutes",
+        "type": "number",
+        "label": {
+          "en": "Walking time to the stop",
+          "sv": "Gångtid till hållplatsen"
+        },
+        "value": 5,
+        "min": 0,
+        "max": 120,
+        "hint": {
+          "en": "Used for 'Leave in' and the 'Time to leave' trigger.",
+          "sv": "Används för 'Gå om' och utlösaren 'Dags att gå'."
+        },
+        "units": {
+          "en": "min",
+          "sv": "min"
+        }
+      },
+      {
+        "id": "remind_before",
+        "type": "number",
+        "label": {
+          "en": "Remind me",
+          "sv": "Påminn mig"
+        },
+        "value": 5,
+        "min": 0,
+        "max": 60,
+        "hint": {
+          "en": "'Time to leave' fires this many minutes before you have to leave (0 = exactly when).",
+          "sv": "'Dags att gå' körs så här många minuter innan du måste gå (0 = precis då)."
+        },
+        "units": {
+          "en": "min",
+          "sv": "min"
+        }
+      },
+      {
+        "id": "delay_threshold",
+        "type": "number",
+        "label": {
+          "en": "Delay alert from",
+          "sv": "Förseningslarm från"
+        },
+        "value": 3,
+        "min": 1,
+        "max": 120,
+        "hint": {
+          "en": "'A departure is delayed' fires when a delay reaches this.",
+          "sv": "'En avgång är försenad' körs när en försening når detta."
+        },
+        "units": {
+          "en": "min",
+          "sv": "min"
+        }
+      },
+      {
+        "id": "active_hours",
+        "type": "text",
+        "label": {
+          "en": "Active hours",
+          "sv": "Aktiva timmar"
+        },
+        "value": "",
+        "hint": {
+          "en": "When alerts and reminders may fire, e.g. '06:30-09:00, 15:30-18:00'. Empty = all day. Outside these hours the board updates only every 10 min to save API quota.",
+          "sv": "När larm och påminnelser får köras, t.ex. '06:30-09:00, 15:30-18:00'. Tomt = hela dygnet. Utanför dessa tider uppdateras enheten mer sällan för att spara API-anrop."
+        }
+      },
+      {
+        "id": "weekdays_only",
+        "type": "checkbox",
+        "label": {
+          "en": "Weekdays only",
+          "sv": "Bara vardagar"
+        },
+        "value": false,
+        "hint": {
+          "en": "Only fire alerts and reminders Monday-Friday.",
+          "sv": "Kör bara larm och påminnelser måndag–fredag."
+        }
+      }
+    ]
+  },
+  {
+    "type": "group",
+    "label": {
+      "en": "Updates",
+      "sv": "Uppdateringar"
+    },
+    "children": [
+      {
+        "id": "poll_minutes",
+        "type": "number",
+        "label": {
+          "en": "Update every",
+          "sv": "Uppdatera var"
+        },
+        "value": 2,
+        "min": 1,
+        "max": 30,
+        "hint": {
+          "en": "During active hours. Trafiklab caches for 60 s; a free (Bronze) key allows 100 000 calls/month, roughly 2 boards at 1 min or 4 at 2 min.",
+          "sv": "Under aktiva timmar. Trafiklab cachar i 60 s; en gratisnyckel (Brons) ger 100 000 anrop/månad, ungefär 2 tavlor med 1 min eller 4 med 2 min."
+        },
+        "units": {
+          "en": "min",
+          "sv": "min"
+        }
+      }
+    ]
+  }
+]

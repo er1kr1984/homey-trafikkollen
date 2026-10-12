@@ -1,0 +1,82 @@
+{
+  "title": {
+    "en": "A departure is delayed",
+    "sv": "En avgång är försenad"
+  },
+  "hint": {
+    "en": "Fires once per trip when the delay reaches the device's delay threshold, and again if it grows by 5+ minutes. Only during the device's active hours.",
+    "sv": "Körs en gång per tur när förseningen når enhetens gräns, och igen om den ökar med 5 min eller mer. Bara under enhetens aktiva timmar."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=departures"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "text",
+      "type": "string",
+      "title": {
+        "en": "Message",
+        "sv": "Meddelande"
+      },
+      "example": "Leave in 5 min for the 07:42 Pendeltåg 43 → Stockholm C"
+    },
+    {
+      "name": "line",
+      "type": "string",
+      "title": {
+        "en": "Line",
+        "sv": "Linje"
+      },
+      "example": "1043"
+    },
+    {
+      "name": "direction",
+      "type": "string",
+      "title": {
+        "en": "Direction",
+        "sv": "Riktning"
+      },
+      "example": "Stockholm C"
+    },
+    {
+      "name": "scheduled",
+      "type": "string",
+      "title": {
+        "en": "Scheduled time",
+        "sv": "Avgångstid enligt tidtabell"
+      },
+      "example": "07:42"
+    },
+    {
+      "name": "expected",
+      "type": "string",
+      "title": {
+        "en": "Expected time",
+        "sv": "Beräknad tid"
+      },
+      "example": "07:45"
+    },
+    {
+      "name": "delay",
+      "type": "number",
+      "title": {
+        "en": "Delay (min)",
+        "sv": "Försening (min)"
+      },
+      "example": 3
+    },
+    {
+      "name": "platform",
+      "type": "string",
+      "title": {
+        "en": "Platform",
+        "sv": "Läge"
+      },
+      "example": "2"
+    }
+  ]
+}

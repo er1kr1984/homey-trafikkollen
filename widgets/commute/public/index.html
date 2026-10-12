@@ -1,0 +1,312 @@
+<!doctype html>
+<html>
+<head>
+  <style>
+    :root {
+      --tk-text: var(--homey-text-color, #1a1a1a);
+      --tk-muted: var(--homey-text-color-light, #8a8a8a);
+      --tk-line: var(--homey-line-color, rgba(128,128,128,.22));
+      --tk-soft: rgba(128,128,128,.10);
+      --tk-accent: var(--homey-color-highlight, #00a2ff);
+      --tk-bad: #e5484d;
+      --tk-warn: #f5a524;
+      --tk-good: #30a46c;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 12px 14px 8px; color: var(--tk-text); font-family: var(--homey-font-family, -apple-system, system-ui, sans-serif); font-size: 14px; }
+    .head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .title { font-weight: 700; font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .clock { font-size: 12px; color: var(--tk-muted); white-space: nowrap; }
+    .verdict { margin: 8px 0 4px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .opt { background: var(--tk-soft); border-radius: 10px; padding: 8px 10px; min-width: 0; }
+    .opt .k { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--tk-muted); font-weight: 600; }
+    .opt .v { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 2px; }
+    .opt .s { font-size: 12px; color: var(--tk-muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .opt.best { box-shadow: inset 0 0 0 2px var(--tk-accent); }
+    h3 { margin: 14px 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--tk-muted); font-weight: 700; display: flex; justify-content: space-between; gap: 8px; }
+    h3 span { text-transform: none; letter-spacing: 0; font-weight: 500; }
+    .j { display: grid; grid-template-columns: 64px 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--tk-line); }
+    .j:first-of-type { border-top: 0; }
+    .j .leave { font-variant-numeric: tabular-nums; }
+    .j .leave b { font-size: 17px; display: block; line-height: 1.1; }
+    .j .leave small { font-size: 11px; font-weight: 600; color: var(--tk-good); }
+    .j .leave small.soon { color: var(--tk-warn); } .j .leave small.now { color: var(--tk-bad); } .j .leave small.gone { color: var(--tk-muted); }
+    .j .legs { min-width: 0; font-size: 12.5px; line-height: 1.5; }
+    .leg { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .arrby { font-size: 11.5px; color: var(--tk-muted); margin: 2px 0 4px; }
+    .lateTxt { color: var(--tk-bad); }
+    .note { font-size: 11px; color: var(--tk-warn); white-space: normal; line-height: 1.35; margin: 1px 0 2px; }
+    .chg { font-size: 11px; color: var(--tk-muted); }
+    .chg.tight { color: var(--tk-warn); font-weight: 600; }
+    .badge { display: inline-block; min-width: 30px; padding: 1px 5px; margin-right: 4px; border-radius: 5px; text-align: center; font-weight: 700; font-size: 12px; color: #fff; background: #3b82c4; }
+    .badge.TRAIN { background: #8b5cf6; } .badge.TRAM { background: #0e9f6e; } .badge.METRO { background: #e5484d; } .badge.BOAT { background: #0891b2; }
+    .late { color: var(--tk-bad); font-weight: 600; }
+    .j .at { text-align: right; font-variant-numeric: tabular-nums; }
+    .j .at b { font-size: 17px; display: block; line-height: 1.1; }
+    .j .at small { font-size: 11px; color: var(--tk-muted); }
+    .j.best { background: linear-gradient(90deg, rgba(0,162,255,.10), transparent 75%); margin: 0 -14px; padding-left: 14px; padding-right: 14px; }
+    .j.canceled .legs, .j.canceled .leave b { text-decoration: line-through; opacity: .55; }
+    .j.canceled .at small { color: var(--tk-bad); font-weight: 600; }
+    .j.gone { opacity: .45; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 6px; }
+    .chip { font-size: 12px; padding: 3px 8px; border-radius: 999px; background: var(--tk-soft); white-space: nowrap; }
+    .chip i { font-style: normal; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; background: var(--tk-good); vertical-align: 0; }
+    .chip.warn i { background: var(--tk-warn); } .chip.bad i { background: var(--tk-bad); }
+    .inc { display: grid; grid-template-columns: 20px 1fr; gap: 6px; padding: 4px 0; font-size: 12.5px; border-top: 1px solid var(--tk-line); }
+    .inc:first-of-type { border-top: 0; }
+    .inc > div { min-width: 0; }
+    .inc .t { font-weight: 600; }
+    .inc { cursor: pointer; }
+    .inc .m { color: var(--tk-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .inc .t::after { content: '›'; float: right; color: var(--tk-muted); font-weight: 400; transition: transform .15s; }
+    .inc.open .t::after { transform: rotate(90deg); }
+    .inc.open .m { white-space: normal; }
+    .inc .x { display: none; margin-top: 4px; line-height: 1.45; }
+    .inc.open .x { display: block; }
+    .inc .x p { margin: 0 0 4px; }
+    .inc .x .meta { color: var(--tk-muted); font-size: 12px; }
+    .inc .tag { display: inline-block; font-size: 11.5px; padding: 1px 7px; margin: 2px 4px 2px 0; border-radius: 999px; background: var(--tk-soft); }
+    .inc .tag.bad { background: rgba(229,72,77,.16); }
+    .tap { font-size: 11px; color: var(--tk-muted); margin: 2px 0 2px; }
+    .more { display: block; width: 100%; margin: 4px 0 2px; padding: 6px; border: 0; border-radius: 8px; background: var(--tk-soft); color: var(--tk-accent); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+    .cams { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 6px; margin-top: 6px; }
+    .cam { position: relative; border-radius: 8px; overflow: hidden; background: var(--tk-soft); aspect-ratio: 16 / 10; }
+    .cam img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .cam { cursor: zoom-in; }
+    .cam.big { grid-column: 1 / -1; aspect-ratio: auto; cursor: zoom-out; }
+    .cam.big img { height: auto; object-fit: contain; }
+    .cam i { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 6px; background: rgba(0,0,0,.45); color: #fff; font-style: normal; font-size: 13px; line-height: 22px; text-align: center; }
+    .cam span { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 6px 3px; font-size: 11px; font-weight: 600; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,.65)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .wx { display: grid; grid-template-columns: 62px 1fr; gap: 8px; align-items: center; padding: 4px 0; }
+    .wx .p { font-weight: 600; font-size: 13px; }
+    .wx .hrs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+    .hr { text-align: center; background: var(--tk-soft); border-radius: 8px; padding: 4px 2px; font-variant-numeric: tabular-nums; }
+    .hr .h { font-size: 11px; color: var(--tk-muted); }
+    .hr .i { font-size: 18px; line-height: 1.2; }
+    .hr .tp { font-weight: 700; font-size: 13px; }
+    .hr .tp.cold { color: #3b82c4; }
+    .hr .x { font-size: 10.5px; color: var(--tk-muted); }
+    .alert { margin-top: 6px; padding: 6px 10px; border-radius: 8px; font-size: 12.5px; font-weight: 600; background: rgba(59,130,196,.14); }
+    .alert.bad { background: rgba(229,72,77,.14); }
+    .msg { padding: 12px 0; text-align: center; color: var(--tk-muted); font-size: 13px; }
+    .foot { margin-top: 8px; font-size: 10.5px; color: var(--tk-muted); text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="head"><div class="title" id="title"></div><div class="clock" id="clock"></div></div>
+  <div id="main"><div class="msg">…</div></div>
+  <div class="foot" id="foot"></div>
+
+  <script type="text/javascript">
+    // English fallback in case translations are unavailable
+    const EN = {"locale": "en-GB", "loading": "Loading…", "publicTransport": "Public transport", "car": "Car", "weather": "Weather", "from": "from {{place}}", "walk": "{{n}} min walk", "leave": "leave {{time}}", "noConnection": "no connection found", "noData": "no data", "ifNow": "if you leave now · ~{{n}} min", "slippery": "slippery!", "inMin": "in {{n}} min", "later": "later", "leaveNow": "leave now", "missed": "missed", "cancelled": "cancelled", "Cancelled": "Cancelled", "atWork": "arrive", "changeAt": "{{n}} min change at {{stop}}", "noConnections": "No connections found in the next two hours", "road": "Road", "messages": "{{n}} message(s) on {{roads}}", "until": "until {{date}}", "thisMorning": "today", "frozen": "❄️ Snow or sleet during the commute: allow extra time", "cold": "🧊 Near freezing: frost on the car, and roads may be slippery", "rain": "☔ Rain during the commute", "updated": "updated {{age}}", "justNow": "just now", "minAgo": "{{n}} min ago", "showAll": "Show all {{n}} messages", "showFewer": "Show fewer", "lanes": "{{n}} lane(s) closed", "tapHint": "Tap a message to read it", "track": "track {{n}}", "lateWarn": "late!", "carLeave": "leave by {{time}} · ~{{n}} min", "arriveBy": "Planned to arrive by {{time}}", "heater": "🔌 Engine heater from {{time}} ({{n}} min, {{temp}}° when you leave)", "surface": "Road surface {{temp}}° ({{place}})"};
+    const tr = (k, v = {}) => {
+      let s = H && typeof H.__ === 'function' ? H.__(`widget.${k}`) : null;
+      if (!s || s === `widget.${k}`) s = String(EN[k] || k).replace(/{{(\w+)}}/g, (_, n) => v[n] ?? '');
+      return String(s).replace(/{{\s*(\w+)\s*}}/g, (_, n) => (v[n] != null ? v[n] : '')); // fill placeholders ourselves
+    };
+    const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    let TZ = 'Europe/Stockholm';
+    const hm = (t) => (t ? new Date(t).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit', timeZone: TZ }) : '–');
+    // 'Uppsala Centralstation' -> 'Uppsala C', 'Uppsala Polacksbacken' -> 'Polacksbacken'
+    const short = (stop) => (/^(\S+) Centralstation$/.test(stop || '') ? stop.replace(/ Centralstation$/, ' C') : String(stop || '').replace(/^(Stockholm|Göteborg|Malmö|Uppsala|Lund|Helsingborg|Linköping|Örebro|Västerås|Umeå) (?=\S)/, ''));
+    const MIN = 60000;
+
+    let H; let settings = {}; let data = null; let skew = 0; let ready = false; let camTick = 0;
+    const openInc = new Set(); let showAllInc = false; const bigCam = new Set(); // kept across refreshes
+    const incKey = (i) => `${i.road}|${i.location}|${i.type}|${i.start}`;
+
+    function legHtml(l) {
+      const late = l.dep.delayMin >= 1 ? ` <span class="late">+${l.dep.delayMin}</span>` : '';
+      const arrLate = l.arr && l.arr.delayMin >= 1 ? ` <span class="late">+${l.arr.delayMin}</span>` : '';
+      // "Pendeltåg" is useful; a whole route description ("Stockholm C - Uppsala C - Gävle C") is not
+      const name = l.lineName && l.mode === 'TRAIN' && l.lineName.length <= 18 ? `${esc(l.lineName)} ` : '';
+      return `<div class="leg"><span class="badge ${esc(l.mode)}">${esc(l.line)}</span>${name}${hm(l.dep.scheduled)}${late}`
+        + ` → ${esc(short(l.to) || '?')} ${l.arr ? hm(l.arr.expected) : ''}${arrLate}${l.platform && l.mode === 'TRAIN' ? ` · ${esc(tr('track', { n: l.platform }))}` : ''}</div>`
+        + ((l.notes || []).length ? `<div class="note">⚠ ${esc(l.notes.join(' · '))}</div>` : '');
+    }
+
+    function transitHtml(t, now) {
+      if (t.error) return `<div class="msg">${esc(t.error)}</div>`;
+      const rows = t.journeys.filter((j) => (j.canceled ? j.leave : j.leave) > now - 2 * MIN).slice(0, settings.rows || 4);
+      if (!rows.length) return `<div class="msg">${esc(tr('noConnections'))}</div>`;
+      const tgt = data.plan && data.plan.arriveBy ? data.plan.target : null; // highlight the planned trip only when planning
+      const bestIdx = tgt ? rows.findIndex((j) => j.leave === tgt.leave && j.arrive === tgt.arrive) : rows.findIndex((j) => !j.canceled && j.leave >= now);
+      return rows.map((j, i) => {
+        const leaveIn = Math.floor((j.leave - now) / MIN);
+        const cls = leaveIn < 0 ? 'gone' : leaveIn <= 2 ? 'now' : leaveIn <= 7 ? 'soon' : '';
+        const leaveTxt = tr(j.canceled ? 'cancelled' : leaveIn < 0 ? 'missed' : leaveIn === 0 ? 'leaveNow' : leaveIn > 99 ? 'later' : 'inMin', { n: leaveIn });
+        const legs = j.legs.map(legHtml);
+        if (j.legs.length > 1 && j.slack !== null) {
+          const change = Math.round((j.legs[1].dep.expected - j.legs[0].arr.expected) / MIN);
+          const risky = j.slack <= 1 && j.legs[0].arr && j.legs[0].arr.delayMin >= 1; // already late and little margin
+          legs.splice(1, 0, `<div class="chg ${risky ? 'tight' : ''}">${esc(tr('changeAt', { n: change, stop: short(j.legs[0].to) }))}</div>`);
+        }
+        const rowCls = ['j', i === bestIdx ? 'best' : '', j.canceled ? 'canceled' : '', !j.canceled && leaveIn < 0 ? 'gone' : ''].join(' ');
+        return `<div class="${rowCls}">
+          <div class="leave"><b>${hm(j.leave)}</b><small class="${cls}">${leaveTxt}</small></div>
+          <div class="legs">${legs.join('')}</div>
+          <div class="at"><b>${j.canceled ? '–' : hm(j.arrive)}</b><small>${esc(tr(j.canceled ? 'Cancelled' : 'atWork'))}</small></div>
+        </div>`;
+      }).join('');
+    }
+
+    function driveHtml(d) {
+      if (d.error) return `<div class="msg">${esc(d.error)}</div>`;
+      const chips = [];
+      if (d.condition) {
+        const c = d.condition;
+        const bad = c.slippery || c.code >= 3;
+        chips.push(`<div class="chip ${bad ? 'bad' : c.code >= 2 ? 'warn' : ''}"><i></i>${esc(tr('road'))}: ${esc(c.text)}${c.warnings && c.warnings.length ? ` – ${esc(c.warnings.join(', '))}` : ''}</div>`);
+      }
+      if (d.roadWeather && Number.isFinite(d.roadWeather.surface)) {
+        const rw = d.roadWeather; const lvl = rw.surface <= 0 ? 'bad' : rw.surface <= 2 ? 'warn' : '';
+        chips.push(`<div class="chip ${lvl}"><i></i>${esc(tr('surface', { temp: rw.surface.toFixed(1), place: rw.name }))}</div>`);
+      }
+      for (const s of d.speeds || []) {
+        const lvl = s.speed < 40 ? 'bad' : s.speed < 70 ? 'warn' : '';
+        chips.push(`<div class="chip ${lvl}"><i></i>${esc(s.name)} ${s.speed} km/h</div>`);
+      }
+      const accidents = (d.incidents || []).filter((i) => !/vägarbete/i.test(i.type));
+      chips.push(`<div class="chip ${accidents.some((i) => /olycka/i.test(i.type)) ? 'bad' : accidents.length ? 'warn' : ''}"><i></i>${esc(tr('messages', { n: d.incidentCount, roads: d.roads || '–' }))}</div>`.replace('<div class="chip', '<div data-more class="chip'));
+      const all = d.incidents || [];
+      const shown = showAllInc ? all : all.slice(0, 4);
+      const day = (t) => new Date(t).toLocaleDateString(tr('locale'), { day: 'numeric', month: 'short', year: new Date(t).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined, timeZone: TZ });
+      const inc = shown.map((i) => {
+        const key = incKey(i);
+        const icon = /olycka/i.test(i.type) ? '💥' : /vägarbete/i.test(i.type) ? '🚧' : /kö|queue/i.test(i.type + i.message) ? '🚗' : '⚠️';
+        const where = String(i.location || '').replace(/ i [A-ZÅÄÖ][a-zåäö]+ län.*$/, '').trim();
+        const until = i.end ? ` · ${tr('until', { date: day(i.end) })}` : '';
+        // full text, unless it only repeats the headline ("Vägarbete. ")
+        const text = String(i.message || '').trim();
+        const says = text && text.replace(/[.\s]+$/, '').toLowerCase() !== String(i.type).toLowerCase() ? text : '';
+        const tags = [
+          i.severityText ? `<span class="tag ${i.severity >= 4 ? 'bad' : ''}">${esc(i.severityText)}</span>` : '',
+          i.direction ? `<span class="tag">${esc(i.direction)}</span>` : '',
+          i.limit ? `<span class="tag">${esc(i.limit)}</span>` : '',
+          i.lanes ? `<span class="tag">${esc(tr('lanes', { n: i.lanes }))}</span>` : '',
+          i.code && i.code !== i.type && !says.toLowerCase().includes(String(i.code).toLowerCase()) ? `<span class="tag">${esc(i.code)}</span>` : '',
+        ].join('');
+        const when = i.start || i.end ? `${i.start ? day(i.start) : ''} – ${i.end ? day(i.end) : ''}` : '';
+        return `<div class="inc ${openInc.has(key) ? 'open' : ''}" data-k="${esc(key)}"><div>${icon}</div><div>
+          <div class="t">${esc(i.type)}${i.road ? ` · ${esc(i.road)}` : ''}</div>
+          <div class="m">${esc(where || says || i.code || '')}${esc(until)}</div>
+          <div class="x">${says ? `<p>${esc(says)}</p>` : ''}${tags ? `<div>${tags}</div>` : ''}${when ? `<div class="meta">🗓 ${esc(when)}</div>` : ''}</div>
+        </div></div>`;
+      }).join('') + (all.length > 4 ? `<button class="more" data-more>${esc(showAllInc ? tr('showFewer') : tr('showAll', { n: all.length }))}</button>` : '');
+      let cams = '';
+      if (settings.show_cameras !== false && (d.cameras || []).length) {
+        cams = `<div class="cams">${d.cameras.map((c) => `<div class="cam ${bigCam.has(c.name) ? 'big' : ''}" data-cam="${esc(c.name)}"><img loading="lazy" src="${esc(c.url)}${c.url.includes('?') ? '&' : '?'}t=${camTick}" alt=""><i>${bigCam.has(c.name) ? '✕' : '⤢'}</i><span>${esc(c.name)}</span></div>`).join('')}</div>`;
+      }
+      const hint = all.length && !openInc.size ? `<div class="tap">${esc(tr('tapHint'))}</div>` : '';
+      return `<div class="chips">${chips.join('')}</div>${hint}${inc}${cams}`;
+    }
+
+    function weatherHtml(w) {
+      if (w.error) return `<div class="msg">${esc(w.error)}</div>`;
+      let cold = false; let wet = false; let frozen = false;
+      const rows = w.places.map((p) => {
+        const hrs = p.hours.map((h) => {
+          if (h.temp <= 1) cold = true;
+          if (h.precip >= 0.3) wet = true;
+          if (h.precip > 0 && h.frozen >= 50) frozen = true;
+          const x = h.precip >= 0.1 ? `${h.precip.toFixed(1)} mm` : `${Math.round(h.wind)} m/s`;
+          return `<div class="hr"><div class="h">${hm(h.time)}</div><div class="i" title="${esc(h.text)}">${h.icon || '·'}</div><div class="tp ${h.temp <= 1 ? 'cold' : ''}">${Math.round(h.temp)}°</div><div class="x">${x}</div></div>`;
+        }).join('');
+        return `<div class="wx"><div class="p">${esc(p.name)}</div><div class="hrs">${hrs || '<div class="x">–</div>'}</div></div>`;
+      }).join('');
+      const alerts = [];
+      if (data.plan && data.plan.frost) cold = true;
+      if (frozen) alerts.push(`<div class="alert bad">${esc(tr('frozen'))}</div>`);
+      else if (cold) alerts.push(`<div class="alert">${esc(tr('cold'))}</div>`);
+      if (wet && !frozen) alerts.push(`<div class="alert">${esc(tr('rain'))}</div>`);
+      return rows + alerts.join('');
+    }
+
+    function render() {
+      const now = Date.now() + skew;
+      document.getElementById('clock').textContent = hm(now);
+      if (!data) return;
+      document.getElementById('title').textContent = data.name;
+      const t = data.transit; const d = data.drive; const w = data.weather;
+
+      // headline: best public transport option vs the car if you left now
+      const plan = data.plan || {};
+      const byTime = plan.arriveBy && plan.arriveBy > now; // planning for an "arrive by" time
+      const bestJ = byTime ? plan.target : (t && !t.error ? t.journeys.find((j) => !j.canceled && j.leave >= now) : null);
+      const carAt = d && !d.error && d.minutes ? (byTime && plan.carLeave > now ? plan.arriveBy : now + d.minutes * MIN) : null;
+      const ptBetter = bestJ && !bestJ.late && (!carAt || bestJ.arrive <= carAt + 10 * MIN);
+      let html = '<div class="verdict">';
+      html += `<div class="opt ${bestJ && ptBetter ? 'best' : ''}"><div class="k">${esc(tr('publicTransport'))}</div>`
+        + (bestJ ? `<div class="v ${bestJ.late ? 'lateTxt' : ''}">${hm(bestJ.arrive)}</div><div class="s">${esc(tr('leave', { time: hm(bestJ.leave) }))} · ${bestJ.legs.map((l) => esc(l.line)).join(' + ')}${bestJ.late ? ` · ${esc(tr('lateWarn'))}` : ''}</div>`
+          : `<div class="v">–</div><div class="s">${esc(tr('noConnection'))}</div>`) + '</div>';
+      if (d && settings.show_drive !== false) {
+        const warn = d.condition && d.condition.slippery ? ` · ${tr('slippery')}` : '';
+        html += `<div class="opt ${carAt && !ptBetter ? 'best' : ''}"><div class="k">${esc(tr('car'))}</div>`
+          + (carAt ? `<div class="v">${hm(carAt)}</div><div class="s">${esc((byTime && plan.carLeave > now ? tr('carLeave', { time: hm(plan.carLeave), n: d.minutes }) : tr('ifNow', { n: d.minutes })) + warn)}</div>` : `<div class="v">–</div><div class="s">${esc(tr('noData'))}</div>`) + '</div>';
+      }
+      html += '</div>';
+      if (byTime) html += `<div class="arrby">${esc(tr('arriveBy', { time: hm(plan.arriveBy) }))}</div>`;
+      if (plan.heaterAt && plan.carLeave > now) {
+        html += `<div class="alert">${esc(tr('heater', { time: hm(plan.heaterAt), n: plan.heaterMinutes, temp: Math.round(plan.temp) }))}</div>`;
+      }
+
+      if (t) html += `<h3>${esc(tr('publicTransport'))} <span>${esc(tr('from', { place: t.origin }))}${t.walkTo ? ` · ${esc(tr('walk', { n: t.walkTo }))}` : ''}</span></h3>${transitHtml(t, now)}`;
+      if (d && settings.show_drive !== false) html += `<h3>${esc(tr('car'))} <span>${esc(d.roads || '')}</span></h3>${driveHtml(d)}`;
+      if (w && settings.show_weather !== false) {
+        const day = w.start ? new Date(w.start).toLocaleDateString(tr('locale'), { weekday: 'long', timeZone: TZ }) : '';
+        const day0 = (t) => new Date(t).toLocaleDateString('sv-SE', { timeZone: TZ });
+        const isToday = w.start && day0(w.start) === day0(now);
+        html += `<h3>${esc(tr('weather'))} <span>${isToday ? esc(tr('thisMorning')) : esc(day)} · SMHI</span></h3>${weatherHtml(w)}`;
+      }
+      document.getElementById('main').innerHTML = html;
+
+      const age = t && t.updated ? Math.round((now - t.updated) / MIN) : null;
+      const stale = [t, d, w].some((x) => x && x.stale);
+      document.getElementById('foot').textContent = `${stale ? '⚠ ' : ''}${age == null ? '' : `${tr('updated', { age: age < 1 ? tr('justNow') : tr('minAgo', { n: age }) })} · `}Trafiklab · Trafikverket · SMHI`;
+      fit();
+    }
+
+    function fit() {
+      const h = Math.ceil(document.body.scrollHeight) + 2;
+      if (!ready) { ready = true; H.ready({ height: h }); } else H.setHeight(h);
+    }
+
+    async function load() {
+      try {
+        const id = settings.commute && settings.commute.id ? settings.commute.id : '';
+        data = await H.api('GET', `/commute?commute=${encodeURIComponent(id)}`);
+        skew = data.now - Date.now();
+        if (data.tz) TZ = data.tz;
+        render();
+      } catch (e) {
+        document.getElementById('main').innerHTML = `<div class="msg">${esc(e.message || e)}</div>`;
+        fit();
+      }
+    }
+
+    function onHomeyReady(Homey) {
+      H = Homey;
+      settings = Homey.getSettings() || {};
+      load();
+      setInterval(load, 60000);
+      setInterval(render, 15000);
+      setInterval(() => { camTick = Date.now(); render(); }, 5 * MIN);
+      document.addEventListener('load', (e) => { if (e.target.tagName === 'IMG') fit(); }, true);
+      // tap a message to open/close it; "show all" lists every message
+      document.getElementById('main').addEventListener('click', (e) => {
+        if (e.target.closest('[data-more]')) { showAllInc = !showAllInc; render(); return; }
+        // tap a camera to show it full width, tap again to make it small
+        const cam = e.target.closest('[data-cam]');
+        if (cam) { const n = cam.dataset.cam; if (bigCam.has(n)) bigCam.delete(n); else bigCam.add(n); render(); return; }
+        const row = e.target.closest('.inc');
+        if (!row) return;
+        const k = row.dataset.k;
+        if (openInc.has(k)) openInc.delete(k); else openInc.add(k);
+        row.classList.toggle('open');
+        fit();
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "title": {
+    "en": "Refresh now",
+    "sv": "Uppdatera nu"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=departures|road|ferry"
+    }
+  ]
+}

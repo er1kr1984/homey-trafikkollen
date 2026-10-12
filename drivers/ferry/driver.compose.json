@@ -1,0 +1,38 @@
+{
+  "name": {
+    "en": "Road ferry",
+    "sv": "Vägfärja"
+  },
+  "class": "sensor",
+  "capabilities": [
+    "dep_next",
+    "dep_minutes",
+    "dep_leave_in",
+    "alarm_dep_problem",
+    "dep_upcoming"
+  ],
+  "capabilitiesOptions": {
+    "alarm_dep_problem": {
+      "title": {
+        "en": "Disruption",
+        "sv": "Störning"
+      }
+    }
+  },
+  "platforms": [
+    "local"
+  ],
+  "connectivity": [
+    "cloud"
+  ],
+  "images": {
+    "small": "/drivers/ferry/assets/images/small.png",
+    "large": "/drivers/ferry/assets/images/large.png",
+    "xlarge": "/drivers/ferry/assets/images/xlarge.png"
+  },
+  "pair": [
+    {
+      "id": "pick"
+    }
+  ]
+}

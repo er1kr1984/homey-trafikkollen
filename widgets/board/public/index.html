@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+<head>
+  <style>
+    :root {
+      --tk-text: var(--homey-text-color, #1a1a1a);
+      --tk-muted: var(--homey-text-color-light, #8a8a8a);
+      --tk-line: var(--homey-line-color, rgba(128,128,128,.22));
+      --tk-accent: var(--homey-color-highlight, #00a2ff);
+      --tk-bad: #e5484d;
+      --tk-warn: #f5a524;
+      --tk-good: #30a46c;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 12px 14px 8px; color: var(--tk-text); font-family: var(--homey-font-family, -apple-system, system-ui, sans-serif); }
+    .head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+    .title { font-weight: 600; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .clock { font-size: 12px; color: var(--tk-muted); white-space: nowrap; }
+    .row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--tk-line); }
+    .row:first-of-type { border-top: 0; }
+    .badge { min-width: 42px; padding: 4px 6px; border-radius: 6px; text-align: center; font-weight: 700; font-size: 14px; color: #fff; background: #3b82c4; font-variant-numeric: tabular-nums; }
+    .badge.TRAIN { background: #8b5cf6; } .badge.TRAM { background: #0e9f6e; } .badge.METRO { background: #e5484d; } .badge.BOAT { background: #0891b2; }
+    .what { min-width: 0; }
+    .dir { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sub { font-size: 12px; color: var(--tk-muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sub .late { color: var(--tk-bad); font-weight: 600; }
+    .sub s { opacity: .7; }
+    .note { font-size: 11.5px; color: var(--tk-warn); margin-top: 2px; line-height: 1.35; }
+    .when { text-align: right; font-variant-numeric: tabular-nums; }
+    .min { font-size: 18px; font-weight: 700; line-height: 1.1; }
+    .min small { font-size: 12px; font-weight: 500; color: var(--tk-muted); margin-left: 2px; }
+    .leave { font-size: 11px; font-weight: 600; margin-top: 2px; color: var(--tk-good); }
+    .leave.soon { color: var(--tk-warn); }
+    .leave.now { color: var(--tk-bad); }
+    .row.next { background: linear-gradient(90deg, rgba(0,162,255,.10), transparent 70%); margin: 0 -14px; padding-left: 14px; padding-right: 14px; border-radius: 0; }
+    .row.canceled .dir, .row.canceled .min { text-decoration: line-through; opacity: .55; }
+    .row.canceled .sub { color: var(--tk-bad); font-weight: 600; }
+    .row.gone { opacity: .45; }
+    .msg { padding: 18px 0; text-align: center; color: var(--tk-muted); font-size: 14px; }
+    .foot { margin-top: 4px; font-size: 11px; color: var(--tk-muted); text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="head"><div class="title" id="title"></div><div class="clock" id="clock"></div></div>
+  <div id="rows"><div class="msg">…</div></div>
+  <div class="foot" id="foot"></div>
+
+  <script type="text/javascript">
+    const EN_TOP = {"Cancelled": "Cancelled", "updated": "updated {{age}}", "justNow": "just now", "minAgo": "{{n}} min ago"};
+    const EN = {"title": "Departures", "none": "No matching departures in the next hour", "platform": "Platform", "leaveNow": "Leave now", "leaveIn": "Leave in {{n}} min", "now": "Now", "unavailable": "Trafiklab unavailable, check the app key", "walk": "Walk {{n}} min"};
+    const EN_MODE = {"BUS": "Bus", "TRAIN": "Train", "TRAM": "Tram", "METRO": "Metro", "BOAT": "Boat", "TAXI": "Taxi"};
+    const tr = (k, v = {}) => {
+      let s = H && typeof H.__ === 'function' ? H.__(`widget.board.${k}`) : null;
+      if (!s || s === `widget.board.${k}`) s = String(EN[k] || EN_MODE[k.replace('modes.', '')] || k).replace(/{{(\w+)}}/g, (_, n) => v[n] ?? '');
+      return String(s).replace(/{{\s*(\w+)\s*}}/g, (_, n) => (v[n] != null ? v[n] : '')); // fill placeholders ourselves
+    };
+    const trTop = (k, v = {}) => {
+      let s = H && typeof H.__ === 'function' ? H.__(`widget.${k}`) : null;
+      if (!s || s === `widget.${k}`) s = String(EN_TOP[k] || k).replace(/{{(\w+)}}/g, (_, n) => v[n] ?? '');
+      return String(s).replace(/{{\s*(\w+)\s*}}/g, (_, n) => (v[n] != null ? v[n] : '')); // fill placeholders ourselves
+    };
+    const MODE = new Proxy({}, { get: (_, m) => (typeof m === 'string' && EN_MODE[m] ? tr(`modes.${m}`) : '') });
+    const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const hm = (t) => new Date(t).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+
+    let H; let settings = {}; let data = null; let skew = 0; let ready = false;
+
+    function render() {
+      const now = Date.now() + skew;
+      document.getElementById('clock').textContent = hm(now);
+      const box = document.getElementById('rows');
+      if (!data) return;
+      document.getElementById('title').textContent = (settings.title || '').trim() || data.name || tr('title');
+      const deps = data.departures.filter((d) => d.expected > now - 60000);
+      if (!deps.length) {
+        box.innerHTML = `<div class="msg">${esc(tr('none'))}</div>`;
+      } else {
+        box.innerHTML = deps.map((d) => {
+          const mins = Math.floor((d.expected - now) / 60000);
+          const leaveIn = mins - (data.walk || 0);
+          const minTxt = mins <= 0 ? esc(tr('now')) : `${mins}<small>min</small>`;
+          let sub = `${esc(MODE[d.mode] || '')}${d.lineName && d.lineName.length <= 18 ? ` · ${esc(d.lineName)}` : ''}`;
+          if (d.platform) sub += ` · ${esc(tr('platform'))} ${esc(d.platform)}`;
+          let timeTxt = hm(d.scheduled);
+          if (d.canceled) sub = `${esc(trTop('Cancelled'))} · ${timeTxt}`;
+          else if (d.delayMin >= 1) sub = `<s>${timeTxt}</s> <span class="late">${hm(d.expected)} (+${d.delayMin})</span> · ${sub}`;
+          else sub = `${timeTxt} · ${sub}`;
+          let leave = '';
+          if (d.next && !d.canceled && data.walk) {
+            const cls = leaveIn <= 0 ? 'now' : leaveIn <= 3 ? 'soon' : '';
+            leave = `<div class="leave ${cls}">${esc(leaveIn <= 0 ? tr('leaveNow') : tr('leaveIn', { n: leaveIn }))}</div>`;
+          }
+          const cls = ['row', d.next ? 'next' : '', d.canceled ? 'canceled' : '', !d.canceled && leaveIn < 0 && data.walk ? 'gone' : ''].join(' ');
+          return `<div class="${cls}">
+            <div class="badge ${esc(d.mode)}">${esc(d.line)}</div>
+            <div class="what"><div class="dir">${esc(d.direction)}</div><div class="sub">${sub}</div>${(d.notes || []).length ? `<div class="note">⚠ ${esc(d.notes.join(' · '))}</div>` : ''}</div>
+            <div class="when"><div class="min">${minTxt}</div>${leave}</div>
+          </div>`;
+        }).join('');
+      }
+      const age = data.updated ? Math.round((now - data.updated) / 60000) : null;
+      document.getElementById('foot').textContent = !data.available ? tr('unavailable')
+        : age == null ? '' : `${tr('walk', { n: data.walk })} · ${trTop('updated', { age: age < 1 ? trTop('justNow') : trTop('minAgo', { n: age }) })} · Trafiklab`;
+      fit();
+    }
+
+    function fit() {
+      const h = Math.ceil(document.body.scrollHeight) + 2;
+      if (!ready) { ready = true; H.ready({ height: h }); } else H.setHeight(h);
+    }
+
+    async function load() {
+      try {
+        const id = settings.device && settings.device.id ? settings.device.id : '';
+        data = await H.api('GET', `/board?device=${encodeURIComponent(id)}&rows=${settings.rows || 6}`);
+        skew = data.now - Date.now();
+        render();
+      } catch (e) {
+        document.getElementById('rows').innerHTML = `<div class="msg">${esc(e.message || e)}</div>`;
+        fit();
+      }
+    }
+
+    function onHomeyReady(Homey) {
+      H = Homey;
+      settings = Homey.getSettings() || {};
+      load();
+      setInterval(load, 30000);
+      setInterval(render, 10000);
+    }
+  </script>
+</body>
+</html>

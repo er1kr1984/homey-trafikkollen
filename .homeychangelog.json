@@ -1,0 +1,6 @@
+{
+  "1.0.0": {
+    "en": "First public release. Live departures for every stop in Sweden, door-to-door commutes with changes, road traffic, cameras and road conditions, road ferries, train tracks and delay reasons, a morning briefing, engine heater and frost Flow cards, and alerts when your commute has a problem. Three dashboard widgets: Commute, Departures near me and Departure board.",
+    "sv": "Första publika versionen. Avgångar i realtid för alla hållplatser i Sverige, pendling från dörr till dörr med byten, vägtrafik, kameror och väglag, vägfärjor, tågens spår och förseningsorsaker, morgonbesked, Flow-kort för motorvärmare och frost, och larm när det är problem på din pendling. Tre widgets för instrumentpanelen: Pendling, Avgångar nära mig och Avgångstavla."
+  }
+}

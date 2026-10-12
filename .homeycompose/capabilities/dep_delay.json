@@ -1,0 +1,16 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Delay",
+    "sv": "Försening"
+  },
+  "units": {
+    "en": "min",
+    "sv": "min"
+  },
+  "decimals": 0,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/capabilities/delay.svg"
+}

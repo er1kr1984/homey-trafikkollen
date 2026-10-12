@@ -1,0 +1,103 @@
+[
+  {
+    "type": "group",
+    "label": {
+      "en": "Reminders and alerts",
+      "sv": "Påminnelser och larm"
+    },
+    "children": [
+      {
+        "id": "walk_minutes",
+        "type": "number",
+        "label": {
+          "en": "Time to get to the ferry",
+          "sv": "Tid att ta sig till färjan"
+        },
+        "value": 10,
+        "min": 0,
+        "max": 120,
+        "hint": {
+          "en": "How long it takes you to get to the harbor, for example by car. Used for \"Leave in\" and the \"Time to leave\" Flow card.",
+          "sv": "Hur lång tid det tar dig att komma till hamnen, till exempel med bil. Används för \"Gå om\" och flödeskortet \"Dags att gå\"."
+        },
+        "units": {
+          "en": "min",
+          "sv": "min"
+        }
+      },
+      {
+        "id": "remind_before",
+        "type": "number",
+        "label": {
+          "en": "Remind me",
+          "sv": "Påminn mig"
+        },
+        "value": 5,
+        "min": 0,
+        "max": 60,
+        "hint": {
+          "en": "'Time to leave' fires this many minutes before you have to leave (0 = exactly when).",
+          "sv": "'Dags att gå' körs så här många minuter innan du måste gå (0 = precis då)."
+        },
+        "units": {
+          "en": "min",
+          "sv": "min"
+        }
+      },
+      {
+        "id": "active_hours",
+        "type": "text",
+        "label": {
+          "en": "Active hours",
+          "sv": "Aktiva timmar"
+        },
+        "value": "",
+        "hint": {
+          "en": "When alerts and reminders may fire, e.g. '06:30-09:00, 15:30-18:00'. Empty = all day. Outside these hours the board updates only every 10 min to save API quota.",
+          "sv": "När larm och påminnelser får köras, t.ex. '06:30-09:00, 15:30-18:00'. Tomt = hela dygnet. Utanför dessa tider uppdateras enheten mer sällan för att spara API-anrop."
+        }
+      },
+      {
+        "id": "weekdays_only",
+        "type": "checkbox",
+        "label": {
+          "en": "Weekdays only",
+          "sv": "Bara vardagar"
+        },
+        "value": false,
+        "hint": {
+          "en": "Only fire alerts and reminders Monday-Friday.",
+          "sv": "Kör bara larm och påminnelser måndag–fredag."
+        }
+      }
+    ]
+  },
+  {
+    "type": "group",
+    "label": {
+      "en": "Updates",
+      "sv": "Uppdateringar"
+    },
+    "children": [
+      {
+        "id": "poll_minutes",
+        "type": "number",
+        "label": {
+          "en": "Update every",
+          "sv": "Uppdatera var"
+        },
+        "value": 3,
+        "min": 1,
+        "max": 30,
+        "hint": {
+          "en": "How often to check during active hours. Uses the Trafikverket key, which has no tight limit.",
+          "sv": "Hur ofta det kollas under aktiva timmar. Använder Trafikverket-nyckeln, som inte har någon snäv gräns."
+        },
+        "units": {
+          "en": "min",
+          "sv": "min"
+        }
+      }
+    ]
+  }
+]

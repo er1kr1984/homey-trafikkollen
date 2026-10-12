@@ -1,0 +1,63 @@
+<style>
+  .tk-list { list-style: none; padding: 0; margin: 8px 0 0; }
+  .tk-list li { display: flex; gap: 10px; align-items: center; padding: 8px 4px; border-bottom: 1px solid rgba(128,128,128,.25); cursor: pointer; }
+  .tk-list li:hover, .tk-list li.on { background: rgba(0,162,255,.10); }
+  .tk-list img { width: 96px; height: 60px; object-fit: cover; border-radius: 6px; background: rgba(128,128,128,.15); flex: none; }
+  .tk-sub { font-size: 12px; opacity: .7; }
+  .tk-msg { margin: 10px 0; opacity: .8; font-size: 14px; }
+  .tk-buttons { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+</style>
+
+<header class="homey-header">
+  <h1 class="homey-title" data-i18n="camera.title"></h1>
+  <p class="homey-subtitle" data-i18n="camera.subtitle"></p>
+</header>
+
+<div class="tk-msg" id="tk-current"></div>
+<input class="homey-form-input" id="tk-q" type="search" autocomplete="off" data-i18n-ph="camera.ph" />
+<ul class="tk-list" id="tk-list"></ul>
+<div class="tk-msg" id="tk-msg"></div>
+<div class="tk-buttons">
+  <button class="homey-button-primary-full" id="tk-use" data-i18n="camera.use" disabled></button>
+  <button class="homey-button-secondary-full" id="tk-clear" data-i18n="camera.clear"></button>
+</div>
+
+<script type="application/javascript">
+  const T = (k, v) => { const s = Homey.__(k); return String(s).replace(/{{\s*(\w+)\s*}}/g, (_, n) => (v && v[n] != null ? v[n] : '')); }; // fills {{placeholders}} itself
+  document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = Homey.__(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach((el) => { el.placeholder = Homey.__(el.dataset.i18nPh); });
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let chosen = null; let timer = null; let seq = 0;
+
+  Homey.emit('current').then((c) => {
+    $('tk-current').textContent = T('camera.current', { name: c.showing || c.camera || T('camera.nearest') });
+    if (c.camera) { $('tk-q').value = c.camera.replace(/["'`´‘’“”]/g, ''); search(); }
+  }).catch(() => {});
+
+  async function search() {
+    const q = $('tk-q').value.trim();
+    const my = ++seq;
+    if (!q) { $('tk-list').innerHTML = ''; $('tk-msg').textContent = ''; return; }
+    try {
+      const list = await Homey.emit('cameras', { q });
+      if (my !== seq) return; // a newer search is on its way
+      $('tk-msg').textContent = list.length ? '' : T('camera.none');
+      $('tk-list').innerHTML = list.map((c, i) => `<li data-i="${i}"><img loading="lazy" src="${esc(c.photoUrl)}" alt="">
+        <div><div>${esc(c.name)}</div>${c.km != null ? `<div class="tk-sub">${esc(T('camera.km', { km: c.km }))}</div>` : ''}</div></li>`).join('');
+      $('tk-list').querySelectorAll('li').forEach((li) => li.addEventListener('click', () => {
+        $('tk-list').querySelectorAll('li').forEach((x) => x.classList.remove('on'));
+        li.classList.add('on');
+        chosen = list[+li.dataset.i].name;
+        $('tk-use').disabled = false;
+      }));
+    } catch (e) { $('tk-msg').textContent = e.message || String(e); }
+  }
+  $('tk-q').addEventListener('input', () => { clearTimeout(timer); chosen = null; $('tk-use').disabled = true; timer = setTimeout(search, 250); });
+
+  async function save(name) {
+    try { await Homey.emit('choose', name); Homey.done(); } catch (e) { Homey.alert(e.message || String(e)); }
+  }
+  $('tk-use').addEventListener('click', () => { if (chosen) save(chosen); });
+  $('tk-clear').addEventListener('click', () => save(''));
+</script>

@@ -1,0 +1,97 @@
+{
+  "title": {
+    "en": "A departure has a message",
+    "sv": "En avgång har ett meddelande"
+  },
+  "hint": {
+    "en": "Fires when the operator or Trafikverket adds a message to a departure, for example a delay reason, a replacement bus or track work. Once per message, during the device's active hours.",
+    "sv": "Körs när trafikbolaget eller Trafikverket lägger till ett meddelande på en avgång, till exempel orsaken till en försening, ersättningsbuss eller banarbete. En gång per meddelande, under enhetens aktiva timmar."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=departures|ferry"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "text",
+      "type": "string",
+      "title": {
+        "en": "Summary",
+        "sv": "Sammanfattning"
+      },
+      "example": {
+        "en": "07:14 Pendeltåg 43 → Södertälje C: The train is delayed. The cause is a signal fault.",
+        "sv": "07:14 Pendeltåg 43 → Södertälje C: Tåget är försenat. Orsaken är signalfel."
+      }
+    },
+    {
+      "name": "message",
+      "type": "string",
+      "title": {
+        "en": "Message",
+        "sv": "Meddelande"
+      },
+      "example": {
+        "en": "Tåget är försenat. Orsaken är signalfel.",
+        "sv": "Tåget är försenat. Orsaken är signalfel."
+      }
+    },
+    {
+      "name": "line",
+      "type": "string",
+      "title": {
+        "en": "Line",
+        "sv": "Linje"
+      },
+      "example": "1754"
+    },
+    {
+      "name": "direction",
+      "type": "string",
+      "title": {
+        "en": "Direction",
+        "sv": "Riktning"
+      },
+      "example": "Helsingborg C"
+    },
+    {
+      "name": "scheduled",
+      "type": "string",
+      "title": {
+        "en": "Scheduled time",
+        "sv": "Avgångstid enligt tidtabell"
+      },
+      "example": "07:14"
+    },
+    {
+      "name": "platform",
+      "type": "string",
+      "title": {
+        "en": "Platform",
+        "sv": "Läge"
+      },
+      "example": "2"
+    },
+    {
+      "name": "expected",
+      "type": "string",
+      "title": {
+        "en": "Expected time",
+        "sv": "Beräknad tid"
+      },
+      "example": "07:19"
+    },
+    {
+      "name": "delay",
+      "type": "number",
+      "title": {
+        "en": "Delay (min)",
+        "sv": "Försening (min)"
+      },
+      "example": 5
+    }
+  ]
+}

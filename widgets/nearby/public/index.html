@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+<head>
+  <style>
+    :root {
+      --tk-text: var(--homey-text-color, #1a1a1a);
+      --tk-muted: var(--homey-text-color-light, #8a8a8a);
+      --tk-line: var(--homey-line-color, rgba(128,128,128,.22));
+      --tk-bad: #e5484d; --tk-warn: #f5a524; --tk-good: #30a46c;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 12px 14px 8px; color: var(--tk-text); font-family: var(--homey-font-family, -apple-system, system-ui, sans-serif); font-size: 14px; }
+    .head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .title { font-weight: 700; font-size: 16px; }
+    .clock { font-size: 12px; color: var(--tk-muted); }
+    .stop { margin-top: 10px; }
+    .stop h3 { margin: 0 0 2px; font-size: 13px; display: flex; justify-content: space-between; gap: 8px; }
+    .stop h3 span { font-weight: 500; color: var(--tk-muted); font-size: 12px; white-space: nowrap; }
+    .row { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; padding: 5px 0; border-top: 1px solid var(--tk-line); }
+    .badge { min-width: 34px; padding: 2px 5px; border-radius: 5px; text-align: center; font-weight: 700; font-size: 12px; color: #fff; background: #3b82c4; font-variant-numeric: tabular-nums; }
+    .badge.TRAIN { background: #8b5cf6; } .badge.TRAM { background: #0e9f6e; } .badge.METRO { background: #e5484d; } .badge.BOAT { background: #0891b2; } .badge.TAXI { background: #6b7280; }
+    .dir { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; min-width: 0; }
+    .dir small { color: var(--tk-muted); font-size: 11px; }
+    .note { font-size: 11px; color: var(--tk-warn); white-space: normal; }
+    .min { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .min .late { color: var(--tk-bad); font-size: 11px; font-weight: 600; display: block; }
+    .row.canceled .dir, .row.canceled .min b { text-decoration: line-through; opacity: .55; }
+    .msg { padding: 10px 0; text-align: center; color: var(--tk-muted); font-size: 13px; }
+    .foot { margin-top: 6px; font-size: 10.5px; color: var(--tk-muted); text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="head"><div class="title" id="title"></div><div class="clock" id="clock"></div></div>
+  <div id="main"><div class="msg">…</div></div>
+  <div class="foot" id="foot"></div>
+  <script type="text/javascript">
+    const EN = {"title": "Departures near me", "walk": "{{n}} min walk", "none": "No departures in the next hour", "now": "Now", "updated": "updated {{age}}", "justNow": "just now", "minAgo": "{{n}} min ago", "Cancelled": "Cancelled", "track": "track {{n}}"};
+    let H; let settings = {}; let data = null; let skew = 0; let ready = false; let TZ = 'Europe/Stockholm';
+    const tr = (k, v = {}) => {
+      let s = H && typeof H.__ === 'function' ? H.__(`widget.nearby.${k}`) : null;
+      if (!s || s === `widget.nearby.${k}`) s = EN[k] || k;
+      return String(s).replace(/{{\s*(\w+)\s*}}/g, (_, n) => (v[n] != null ? v[n] : ''));
+    };
+    const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const hm = (t) => new Date(t).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit', timeZone: TZ });
+
+    function render() {
+      const now = Date.now() + skew;
+      document.getElementById('clock').textContent = hm(now);
+      document.getElementById('title').textContent = tr('title');
+      if (!data) return;
+      document.getElementById('main').innerHTML = data.stops.map((st) => {
+        const deps = st.departures.filter((d) => d.expected > now - 30000);
+        const rows = deps.length ? deps.map((d) => {
+          const mins = Math.floor((d.expected - now) / 60000);
+          const late = d.delayMin >= 1 ? `<span class="late">+${d.delayMin}</span>` : '';
+          const sub = d.platform && d.mode === 'TRAIN' ? ` <small>${esc(tr('track', { n: d.platform }))}</small>` : '';
+          return `<div class="row ${d.canceled ? 'canceled' : ''}"><div class="badge ${esc(d.mode)}">${esc(d.line)}</div>
+            <div class="dir">${esc(d.direction)}${sub}${d.canceled ? ` <small>${esc(tr('Cancelled'))}</small>` : ''}${(d.notes || []).length ? `<div class="note">⚠ ${esc(d.notes.join(' · '))}</div>` : ''}</div>
+            <div class="min"><b>${mins <= 0 ? esc(tr('now')) : mins < 60 ? `${mins} min` : hm(d.expected)}</b>${late}</div></div>`;
+        }).join('') : `<div class="msg">${esc(st.error || tr('none'))}</div>`;
+        return `<div class="stop"><h3>${esc(st.name)}<span>${esc(tr('walk', { n: st.walk }))}</span></h3>${rows}</div>`;
+      }).join('');
+      const upd = Math.min(...data.stops.map((s) => s.updated || now));
+      const age = Math.round((now - upd) / 60000);
+      document.getElementById('foot').textContent = `${tr('updated', { age: age < 1 ? tr('justNow') : tr('minAgo', { n: age }) })} · Trafiklab`;
+      fit();
+    }
+    function fit() {
+      const h = Math.ceil(document.body.scrollHeight) + 2;
+      if (!ready) { ready = true; H.ready({ height: h }); } else H.setHeight(h);
+    }
+    async function load() {
+      try {
+        data = await H.api('GET', `/nearby?stops=${settings.stops || 3}&rows=${settings.rows || 3}&taxi=${settings.taxi ? 1 : 0}`);
+        skew = data.now - Date.now();
+        if (data.tz) TZ = data.tz;
+        render();
+      } catch (e) {
+        document.getElementById('main').innerHTML = `<div class="msg">${esc(e.message || e)}</div>`;
+        fit();
+      }
+    }
+    function onHomeyReady(Homey) {
+      H = Homey;
+      settings = Homey.getSettings() || {};
+      document.getElementById('title').textContent = tr('title');
+      load();
+      setInterval(load, 60000);
+      setInterval(render, 15000);
+    }
+  </script>
+</body>
+</html>

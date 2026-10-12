@@ -1,0 +1,537 @@
+<!doctype html>
+<html>
+<head>
+  <script type="text/javascript" src="/homey.js" data-origin="settings"></script>
+  <style>
+    .tk-field { margin-bottom: 16px; }
+    .tk-hint { font-size: 12px; opacity: .75; margin-top: 4px; line-height: 1.4; }
+    .tk-res { margin: 10px 0; white-space: pre-line; font-size: 14px; }
+    .tk-res.bad { color: #e5484d; }
+    .tk-steps { font-size: 13px; margin: 6px 0 0; padding-left: 20px; line-height: 1.5; }
+    details > summary { cursor: pointer; font-size: 13px; opacity: .85; margin-top: 4px; }
+    h2 { font-size: 17px; margin: 28px 0 6px; }
+    .tk-card { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid rgba(128,128,128,.25); }
+    .tk-card .t { flex: 1; min-width: 0; }
+    .tk-card .t b { display: block; }
+    .tk-card .t span { font-size: 12px; opacity: .75; }
+    .tk-link { background: none; border: 0; padding: 4px 6px; color: var(--homey-color-highlight, #00a2ff); font-size: 14px; cursor: pointer; }
+    .tk-link.bad { color: #e5484d; }
+    .tk-editor { margin-top: 12px; padding: 12px; border-radius: 10px; background: rgba(128,128,128,.08); }
+    .tk-row { display: flex; gap: 8px; align-items: center; }
+    .tk-row > input { flex: 1; min-width: 0; }
+    .tk-num { width: 72px !important; flex: none !important; }
+    .tk-results { list-style: none; padding: 0; margin: 4px 0 0; max-height: 220px; overflow: auto; }
+    .tk-results li { padding: 8px 4px; border-bottom: 1px solid rgba(128,128,128,.2); cursor: pointer; font-size: 14px; }
+    .tk-results li span { font-size: 12px; opacity: .7; }
+    .tk-chip { display: flex; align-items: center; gap: 8px; padding: 6px 8px; margin-top: 6px; border-radius: 8px; background: rgba(128,128,128,.12); font-size: 14px; }
+    .tk-chip .n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tk-check { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 14px; }
+    .tk-check span { opacity: .65; font-size: 12px; }
+    .tk-sub { margin: 6px 0 0 4px; padding-left: 10px; border-left: 2px solid rgba(128,128,128,.25); }
+    .tk-buttons { display: flex; gap: 8px; margin-top: 12px; }
+    .tk-buttons > * { flex: 1; }
+    textarea.homey-form-input { height: 280px; font-family: monospace; font-size: 12px; white-space: pre; }
+  </style>
+</head>
+<body>
+  <header class="homey-header">
+    <h1 class="homey-title">Trafikkollen</h1>
+    <p class="homey-subtitle" data-i18n="settings.subtitle"></p>
+  </header>
+
+  <!-- 1. keys -->
+  <h2 data-i18n="settings.keys.title"></h2>
+  <p class="tk-hint" data-i18n="settings.keys.intro"></p>
+  <fieldset class="homey-form-fieldset">
+    <div class="tk-field">
+      <label class="homey-form-label" for="trafiklab_key" data-i18n="settings.keys.tlLabel"></label>
+      <input class="homey-form-input" id="trafiklab_key" type="password" autocomplete="off" />
+      <details><summary data-i18n="settings.keys.how"></summary><ol class="tk-steps" data-i18n-html="settings.keys.tlSteps"></ol></details>
+    </div>
+    <div class="tk-field">
+      <label class="homey-form-label" for="trafikverket_key" data-i18n="settings.keys.tvLabel"></label>
+      <input class="homey-form-input" id="trafikverket_key" type="password" autocomplete="off" />
+      <details><summary data-i18n="settings.keys.how"></summary><ol class="tk-steps" data-i18n-html="settings.keys.tvSteps"></ol></details>
+    </div>
+  </fieldset>
+  <button class="homey-button-primary-full" id="save" data-i18n="settings.keys.save"></button>
+  <div class="tk-res" id="res"></div>
+
+  <!-- 2. commutes -->
+  <h2 data-i18n="settings.commutes.title"></h2>
+  <p class="tk-hint" data-i18n="settings.commutes.intro"></p>
+  <div id="list"></div>
+  <div class="tk-editor" id="guide" style="display:none"></div>
+  <button class="homey-button-secondary-full" id="add" style="margin-top:12px" data-i18n="settings.commutes.add"></button>
+
+  <div class="tk-editor" id="editor" style="display:none">
+    <div class="tk-field">
+      <label class="homey-form-label" for="c-name" data-i18n="settings.commutes.name"></label>
+      <input class="homey-form-input" id="c-name" type="text" data-i18n-ph="settings.commutes.namePh" />
+    </div>
+    <div class="tk-field" id="pick-from"></div>
+    <div class="tk-field">
+      <label class="homey-form-label" for="c-walk" data-i18n="settings.commutes.walkTo"></label>
+      <div class="tk-row"><input class="homey-form-input tk-num" id="c-walk" type="number" min="0" max="60" value="5" /><span data-i18n="common.min"></span></div>
+    </div>
+    <div class="tk-field" id="pick-via"></div>
+    <div class="tk-field">
+      <label class="homey-form-label" for="c-change" data-i18n="settings.commutes.change"></label>
+      <div class="tk-row"><input class="homey-form-input tk-num" id="c-change" type="number" min="0" max="30" value="3" /><span data-i18n="common.min"></span></div>
+    </div>
+    <div class="tk-field" id="pick-to"></div>
+    <div class="tk-field">
+      <label class="homey-form-label" for="c-hours" data-i18n="settings.commutes.hours"></label>
+      <input class="homey-form-input" id="c-hours" type="text" placeholder="06:30-09:00" />
+      <div class="tk-hint" data-i18n="settings.commutes.hoursHint"></div>
+      <label class="tk-check"><input type="checkbox" id="c-weekdays" checked /> <b data-i18n="settings.commutes.weekdays"></b></label>
+    </div>
+    <div class="tk-field">
+      <label class="homey-form-label" for="c-arrive" data-i18n="settings.commutes.arriveBy"></label>
+      <input class="homey-form-input" id="c-arrive" type="text" placeholder="08:00" style="max-width:120px" />
+      <div class="tk-hint" data-i18n="settings.commutes.arriveByHint"></div>
+      <label class="homey-form-label" for="c-remind" style="margin-top:10px" data-i18n="settings.commutes.remind"></label>
+      <div class="tk-row"><input class="homey-form-input tk-num" id="c-remind" type="number" min="0" max="60" value="5" /><span data-i18n="settings.commutes.remindUnit"></span></div>
+    </div>
+    <div class="tk-field">
+      <label class="homey-form-label" data-i18n="settings.commutes.alerts"></label>
+      <label class="tk-check"><input type="checkbox" id="c-alerts" /> <b data-i18n="settings.commutes.alertsOn"></b></label>
+      <div class="tk-hint" data-i18n="settings.commutes.alertsHint"></div>
+      <label class="homey-form-label" for="c-alert-delay" style="margin-top:10px" data-i18n="settings.commutes.alertDelay"></label>
+      <div class="tk-row"><input class="homey-form-input tk-num" id="c-alert-delay" type="number" min="1" max="60" value="5" /><span data-i18n="settings.commutes.alertDelayUnit"></span></div>
+    </div>
+    <div class="tk-field">
+      <label class="tk-check"><input type="checkbox" id="c-car" checked /> <b data-i18n="settings.commutes.car"></b></label>
+      <div class="tk-sub" id="car">
+        <button class="homey-button-secondary-full" id="find" style="margin:4px 0 10px" data-i18n="settings.commutes.routeBtn"></button>
+        <div class="tk-res" id="find-res"></div>
+        <label class="homey-form-label" for="c-drive" data-i18n="settings.commutes.driveMin"></label>
+        <div class="tk-row"><input class="homey-form-input tk-num" id="c-drive" type="number" min="1" max="300" value="30" /><span data-i18n="common.min"></span></div>
+        <label class="homey-form-label" for="c-roads" style="margin-top:10px" data-i18n="settings.commutes.roads"></label>
+        <input class="homey-form-input" id="c-roads" type="text" placeholder="E6, 108" />
+        <div class="tk-hint" data-i18n="settings.commutes.roadsHint"></div>
+
+        <div id="cams"></div>
+        <div id="sensors"></div>
+      </div>
+    </div>
+    <div class="tk-field">
+      <label class="tk-check"><input type="checkbox" id="c-weather" checked /> <b data-i18n="settings.commutes.weather"></b></label>
+    </div>
+    <div class="tk-res" id="c-res"></div>
+    <div class="tk-buttons">
+      <button class="homey-button-secondary" id="c-cancel" data-i18n="common.cancel"></button>
+      <button class="homey-button-secondary" id="c-test" data-i18n="common.test"></button>
+      <button class="homey-button-primary" id="c-save" data-i18n="common.save"></button>
+    </div>
+  </div>
+
+  <details style="margin-top:24px">
+    <summary data-i18n="settings.commutes.advanced"></summary>
+    <textarea class="homey-form-input" id="json" spellcheck="false" style="margin-top:8px"></textarea>
+    <button class="homey-button-secondary-full" id="saveJson" style="margin-top:8px" data-i18n="settings.commutes.saveJson"></button>
+    <div class="tk-res" id="json-res"></div>
+  </details>
+
+  <p class="tk-hint" style="margin-top:24px" data-i18n="settings.credits"></p>
+
+  <script type="text/javascript">
+    function onHomeyReady(Homey) {
+      const $ = (id) => document.getElementById(id);
+      // fill {{placeholders}} ourselves: Homey.__ doesn't do it on every screen
+      const t = (k, v) => { const s = Homey.__(k); return String(s).replace(/{{\s*(\w+)\s*}}/g, (_, n) => (v && v[n] != null ? v[n] : '')); };
+      const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const api = (method, path, body) => new Promise((ok, fail) => Homey.api(method, path, body || {}, (err, r) => (err ? fail(err) : ok(r))));
+      const get = (k) => new Promise((ok) => Homey.get(k, (err, v) => ok(err ? null : v)));
+      const set = (k, v) => new Promise((ok, fail) => Homey.set(k, v, (err) => (err ? fail(err) : ok())));
+      const say = (el, text, bad) => { $(el).textContent = text || ''; $(el).classList.toggle('bad', !!bad); };
+
+      document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+      document.querySelectorAll('[data-i18n-html]').forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); }); // our own locale strings
+      document.querySelectorAll('[data-i18n-ph]').forEach((el) => { el.placeholder = t(el.dataset.i18nPh); });
+
+      // ---- keys
+      const keys = ['trafiklab_key', 'trafikverket_key'];
+      keys.forEach(async (k) => { const v = await get(k); if (v) $(k).value = v; });
+      $('save').addEventListener('click', async () => {
+        say('res', t('settings.keys.saving'));
+        for (const k of keys) await set(k, $(k).value.trim());
+        say('res', t('settings.keys.testing'));
+        try {
+          const r = await api('POST', '/test-keys');
+          say('res', `Trafiklab: ${r.trafiklab}\nTrafikverket: ${r.trafikverket}`, r.failed);
+        } catch (e) { say('res', `${t('settings.keys.failed')} ${e.message || e}`, true); }
+      });
+
+      // ---- stop picker: single (from/via) or multi with walk minutes (to)
+      function picker(el, label, hint, multi, walk = multi) {
+        const box = $(el);
+        box.innerHTML = `<label class="homey-form-label">${esc(label)}</label>
+          <form class="tk-row"><input class="homey-form-input" type="search" autocomplete="off"><button class="homey-button-secondary" type="submit">${esc(t('common.search'))}</button></form>
+          ${hint ? `<div class="tk-hint">${esc(hint)}</div>` : ''}<ul class="tk-results"></ul><div class="extra"></div><div class="chips"></div>`;
+        const input = box.querySelector('input'); const results = box.querySelector('.tk-results'); const chips = box.querySelector('.chips');
+        const p = { value: multi ? [] : null, extra: box.querySelector('.extra') };
+        p.render = () => {
+          const list = multi ? p.value : (p.value ? [p.value] : []);
+          chips.innerHTML = list.map((s, i) => `<div class="tk-chip"><span class="n">${esc(s.name)}</span>
+            ${walk ? `<input class="homey-form-input tk-num" type="number" min="0" max="60" value="${s.walk ?? 5}" data-i="${i}"><span>${esc(t('common.min'))} ${esc(t('settings.commutes.walkFrom'))}</span>` : ''}
+            <button class="tk-link bad" type="button" data-x="${i}">✕</button></div>`).join('');
+          chips.querySelectorAll('[data-x]').forEach((b) => b.addEventListener('click', () => {
+            if (multi) p.value.splice(+b.dataset.x, 1); else p.value = null;
+            p.render();
+          }));
+          chips.querySelectorAll('input[data-i]').forEach((inp) => inp.addEventListener('change', () => { p.value[+inp.dataset.i].walk = +inp.value || 0; }));
+        };
+        box.querySelector('form').addEventListener('submit', async (ev) => {
+          ev.preventDefault();
+          const q = input.value.trim();
+          if (!q) return;
+          results.innerHTML = `<li>${esc(t('common.searching'))}</li>`;
+          try {
+            const stops = await api('GET', `/stops?q=${encodeURIComponent(q)}`);
+            results.innerHTML = stops.length ? '' : `<li>${esc(t('pair.search.none'))}</li>`;
+            for (const s of stops.slice(0, 12)) {
+              const li = document.createElement('li');
+              const modes = (s.modes || []).map((m) => t(`common.modes.${m}`)).join(', ');
+              li.innerHTML = `${esc(s.name)} <span>${esc(modes)}</span>`;
+              li.addEventListener('click', () => {
+                const stop = { id: s.id, name: s.name, lat: s.lat, lon: s.lon };
+                if (multi) { if (!p.value.some((x) => x.id === s.id)) p.value.push(walk ? { ...stop, walk: 5 } : stop); } else p.value = stop;
+                results.innerHTML = ''; input.value = ''; p.render();
+              });
+              results.appendChild(li);
+            }
+          } catch (e) { results.innerHTML = `<li>${esc(e.message || e)}</li>`; }
+        });
+        return p;
+      }
+      const from = picker('pick-from', t('settings.commutes.from'), '', false);
+      const via = picker('pick-via', t('settings.commutes.via'), t('settings.commutes.viaHint'), true, false);
+      const to = picker('pick-to', t('settings.commutes.to'), t('settings.commutes.toHint'), true);
+      const tc = (k, v) => t(`settings.commutes.${k}`, v);
+      const modesOf = (s) => (s.modes || []).map((m) => t(`common.modes.${m}`)).join(', ');
+      const hm = (ms) => new Date(ms).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+
+      // From: stops near the Homey's location, with the walk filled in
+      from.extra.innerHTML = `<button class="tk-link" type="button">📍 ${esc(tc('nearHome'))}</button><ul class="tk-results"></ul>`;
+      from.extra.querySelector('button').addEventListener('click', async () => {
+        const ul = from.extra.querySelector('ul');
+        ul.innerHTML = `<li>${esc(t('common.searching'))}</li>`;
+        try {
+          const stops = await api('GET', '/nearby?home=1&meters=1200');
+          ul.innerHTML = stops.length ? '' : `<li>${esc(tc('noNear'))}</li>`;
+          for (const s of stops.slice(0, 8)) {
+            const li = document.createElement('li');
+            li.innerHTML = `${esc(s.name)} <span>${esc(modesOf(s))} · ${esc(tc('walkMin', { n: s.walk }))}</span>`;
+            li.addEventListener('click', () => {
+              from.value = { id: s.id, name: s.name, lat: s.lat, lon: s.lon }; from.render();
+              $('c-walk').value = s.walk; ul.innerHTML = '';
+            });
+            ul.appendChild(li);
+          }
+        } catch (e) { ul.innerHTML = `<li>${esc(e.message || e)}</li>`; }
+      });
+
+      // To: address -> place -> stops within walking distance
+      to.extra.innerHTML = `<label class="homey-form-label" style="margin-top:10px">${esc(tc('addrFind'))}</label>
+        <form class="tk-row"><input class="homey-form-input" type="search" autocomplete="off" placeholder="${esc(tc('addrPh'))}"><button class="homey-button-secondary" type="submit">${esc(t('common.search'))}</button></form>
+        <div class="addr"></div>`;
+      const addrBox = to.extra.querySelector('.addr');
+      async function showNear(place) {
+        addrBox.innerHTML = `<div class="tk-hint">${esc(t('common.searching'))}</div>`;
+        try {
+          const stops = await api('GET', `/nearby?lat=${place.lat}&lon=${place.lon}&meters=900`);
+          if (!stops.length) { addrBox.innerHTML = `<div class="tk-hint">${esc(tc('noNear'))}</div>`; return; }
+          // pre-tick the nearest few, one per stop name (östra/västra etc. count as the same stop)
+          const seen = new Set();
+          const key = (n) => n.replace(/\s+(östra|västra|norra|södra|[A-Z])$/i, '');
+          stops.forEach((s) => { s.on = seen.size < 3 && !seen.has(key(s.name)) && s.walk <= 10; if (s.on) seen.add(key(s.name)); });
+          addrBox.innerHTML = `<div class="tk-hint" style="margin-top:8px">${esc(tc('nearStops', { place: place.name.split(',')[0] }))}</div>`
+            + stops.slice(0, 12).map((s, i) => `<label class="tk-check"><input type="checkbox" data-i="${i}" ${s.on ? 'checked' : ''}> ${esc(s.name)} <span>${esc(modesOf(s))} · ${esc(tc('walkMin', { n: s.walk }))}</span></label>`).join('')
+            + `<button class="homey-button-secondary-full" type="button" style="margin-top:6px">${esc(tc('addSel'))}</button>`;
+          addrBox.querySelectorAll('input[data-i]').forEach((cb) => cb.addEventListener('change', () => { stops[+cb.dataset.i].on = cb.checked; }));
+          addrBox.querySelector('button').addEventListener('click', () => {
+            for (const s of stops.filter((x) => x.on)) {
+              if (!to.value.some((x) => x.id === s.id)) to.value.push({ id: s.id, name: s.name, lat: s.lat, lon: s.lon, walk: s.walk });
+            }
+            base.place = { name: place.name, lat: place.lat, lon: place.lon };
+            addrBox.innerHTML = ''; to.render();
+          });
+        } catch (e) { addrBox.innerHTML = `<div class="tk-res bad">${esc(e.message || e)}</div>`; }
+      }
+      to.extra.querySelector('form').addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const q = to.extra.querySelector('input').value.trim();
+        if (!q) return;
+        addrBox.innerHTML = `<div class="tk-hint">${esc(t('common.searching'))}</div>`;
+        try {
+          const places = await api('GET', `/geocode?q=${encodeURIComponent(q)}`);
+          if (!places.length) { addrBox.innerHTML = `<div class="tk-res bad">${esc(tc('addrNone'))}</div>`; return; }
+          if (places.length === 1) { showNear(places[0]); return; }
+          addrBox.innerHTML = `<div class="tk-hint">${esc(tc('addrPick'))}</div><ul class="tk-results"></ul>`;
+          const ul = addrBox.querySelector('ul');
+          for (const pl of places) {
+            const li = document.createElement('li');
+            li.textContent = pl.name;
+            li.addEventListener('click', () => showNear(pl));
+            ul.appendChild(li);
+          }
+        } catch (e) { addrBox.innerHTML = `<div class="tk-res bad">${esc(e.message || e)}</div>`; }
+      });
+
+      // Change at: try likely change points against live departures
+      via.extra.innerHTML = `<button class="tk-link" type="button">✨ ${esc(tc('suggestVia'))}</button><div class="sugg"></div>`;
+      via.extra.querySelector('button').addEventListener('click', async () => {
+        const box = via.extra.querySelector('.sugg');
+        if (!from.value || !to.value.length) { box.innerHTML = `<div class="tk-res bad">${esc(tc('needEnds'))}</div>`; return; }
+        box.innerHTML = `<div class="tk-hint">${esc(tc('suggesting'))}</div>`;
+        try {
+          const r = await api('POST', '/suggest-transfers', {
+            origin: from.value, destinations: to.value, walk_to_stop: +$('c-walk').value || 0, change_minutes: +$('c-change').value || 0,
+          });
+          if (!r.options.length) { box.innerHTML = `<div class="tk-res bad">${esc(tc('viaNone'))}</div>`; return; }
+          box.innerHTML = r.options.map((o, i) => `<div class="tk-chip"><span class="n"><b>${esc(o.stops.length ? o.stops.map((x) => x.name).join(' + ') : tc('viaDirect'))}</b><br>
+            <span style="font-size:12px;opacity:.75">${esc(tc('viaOption', { leave: hm(o.leave), arrive: hm(o.arrive), min: o.minutes, legs: o.legs.join(' → ') }))}</span></span>
+            <button class="tk-link" type="button" data-i="${i}">${esc(tc('viaUse'))}</button></div>`).join('') + `<div class="tk-hint">${esc(tc('viaHintDone'))}</div>`;
+          box.querySelectorAll('button[data-i]').forEach((b) => b.addEventListener('click', () => {
+            via.value = r.options[+b.dataset.i].stops.map((x) => ({ ...x })); via.render(); box.innerHTML = '';
+          }));
+        } catch (e) { box.innerHTML = `<div class="tk-res bad">${esc(e.message || e)}</div>`; }
+      });
+
+      // ---- commute list + editor
+      let commutes = [];
+      let editing = -1;       // index being edited, commutes.length = new
+      let base = {};          // the config being edited (unknown fields are kept)
+      let options = null;     // cameras/sensors found for the route
+
+      async function load() {
+        commutes = (await get('commutes')) || [];
+        if (!Array.isArray(commutes)) commutes = [commutes];
+        $('json').value = JSON.stringify(commutes, null, 2);
+        const list = $('list');
+        list.innerHTML = commutes.length ? '' : `<p class="tk-hint">${esc(t('settings.commutes.none'))}</p>`;
+        commutes.forEach((c, i) => {
+          const div = document.createElement('div');
+          div.className = 'tk-card';
+          const to = [].concat(c.destinations || []).map((d) => d.name || d.id).join(', ');
+          div.innerHTML = `<div class="t"><b>${esc(c.name || c.id)}</b><span>${esc((c.origin && (c.origin.name || c.origin.id)) || '?')} → ${esc(to)}</span></div>
+            <button class="tk-link" data-r title="${esc(t('settings.commutes.returnHint'))}">⇄ ${esc(t('settings.commutes.returnBtn'))}</button>
+            <button class="tk-link" data-e>${esc(t('common.edit'))}</button><button class="tk-link bad" data-d>${esc(t('common.delete'))}</button>`;
+          div.querySelector('[data-e]').addEventListener('click', () => edit(i));
+          div.querySelector('[data-r]').addEventListener('click', () => addReturn(c));
+          div.querySelector('[data-d]').addEventListener('click', async () => {
+            if (!(await new Promise((ok) => Homey.confirm(t('settings.commutes.confirmDelete'), null, (e, yes) => ok(!e && yes))))) return;
+            commutes.splice(i, 1);
+            await set('commutes', commutes);
+            $('editor').style.display = 'none';
+            load();
+          });
+          list.appendChild(div);
+        });
+      }
+
+      // the trip home: swap ends, keep the change stops, evening hours; opened in the editor to check before saving
+      function addReturn(c) {
+        const dests = [].concat(c.destinations || []);
+        const first = dests[0] || {};
+        const ret = {
+          name: c.name.includes('→') ? c.name.split('→').map((x) => x.trim()).reverse().join(' → ') : `${c.name} ⇄`,
+          origin: { id: first.id, name: first.name, lat: first.lat, lon: first.lon },
+          walk_to_stop: first.walk ?? 5,
+          transfers: [].concat(c.transfers || c.transfer || []),
+          change_minutes: c.change_minutes ?? 3,
+          destinations: c.origin ? [{ ...c.origin, walk: c.walk_to_stop ?? 5 }] : [],
+          active_hours: '15:30-18:30',
+          weekdays_only: c.weekdays_only ?? true,
+          arrive_by: '',
+          remind_before: c.remind_before ?? 5,
+          alerts: !!c.alerts,
+          alert_delay: c.alert_delay ?? 5,
+          weather: c.weather === true || (Array.isArray(c.weather) && c.weather.length) ? true : [],
+        };
+        if (c.drive && c.drive.enabled !== false) ret.drive = { enabled: true, minutes: c.drive.minutes, roads: c.drive.roads, cameras: [...(c.drive.cameras || [])].reverse(), speed: c.drive.speed || [] };
+        commutes.push(ret);
+        edit(commutes.length - 1);
+        commutes.pop(); // not saved until the user presses Save
+        editing = commutes.length;
+        say('c-res', t('settings.commutes.returnCheck'));
+      }
+
+      function showGuide(name) {
+        $('guide').innerHTML = `<b>${esc(t('settings.commutes.guideTitle'))}</b><ol class="tk-steps">${t('settings.commutes.guideSteps').replace('{{name}}', esc(name))}</ol>`;
+        $('guide').style.display = '';
+      }
+
+      function edit(i) {
+        editing = i;
+        base = JSON.parse(JSON.stringify(commutes[i] || {}));
+        const d = base.drive || null;
+        $('c-name').value = base.name || '';
+        $('c-walk').value = base.walk_to_stop ?? 5;
+        $('c-change').value = base.change_minutes ?? 3;
+        $('c-hours').value = base.active_hours ?? '06:30-09:00';
+        $('c-weekdays').checked = base.weekdays_only ?? true;
+        $('c-arrive').value = base.arrive_by || '';
+        $('c-remind').value = base.remind_before ?? 5;
+        $('c-alerts').checked = !!base.alerts;
+        $('c-alert-delay').value = base.alert_delay ?? 5;
+        from.value = base.origin || null; from.render();
+        via.value = [].concat(base.transfers || base.transfer || []).map((x) => ({ ...x })); via.render();
+        to.value = [].concat(base.destinations || []).map((x) => ({ ...x })); to.render();
+        $('c-car').checked = i >= commutes.length ? true : !!(d && d.enabled !== false);
+        $('c-drive').value = (d && d.minutes) || 30;
+        $('c-roads').value = (d && d.roads) || '';
+        options = {
+          cameras: [].concat((d && d.cameras) || []).map((name) => ({ name, on: true })),
+          sensors: [].concat((d && d.speed) || []).map((s) => ({ ...s, on: true })),
+        };
+        renderOptions();
+        $('c-weather').checked = i >= commutes.length ? true : !!(base.weather && (base.weather === true || base.weather.length));
+        $('car').style.display = $('c-car').checked ? '' : 'none';
+        say('c-res', ''); say('find-res', '');
+        $('editor').style.display = '';
+        $('editor').scrollIntoView({ behavior: 'smooth' });
+      }
+
+      function renderOptions() {
+        const o = options || { cameras: [], sensors: [] };
+        const row = (x, kind, i) => `<label class="tk-check"><input type="checkbox" data-k="${kind}" data-i="${i}" ${x.on ? 'checked' : ''}> ${esc(x.name)}
+          ${x.km != null ? `<span>${x.km} km${x.speed ? ` · ${x.speed} km/h` : ''}</span>` : ''}</label>`;
+        $('cams').innerHTML = options ? `<label class="homey-form-label">${esc(t('settings.commutes.cams'))}</label>${o.cameras.length ? o.cameras.map((x, i) => row(x, 'cameras', i)).join('') : `<div class="tk-hint">${esc(t('settings.commutes.noCams'))}</div>`}
+          <div class="tk-hint" style="margin-top:6px">${esc(t('settings.commutes.camSearch'))}</div>
+          <input class="homey-form-input" id="cam-q" type="search" autocomplete="off" placeholder="${esc(t('camera.ph'))}"><ul class="tk-results" id="cam-res"></ul>` : '';
+        if (options) {
+          let timer = null; let seq = 0;
+          $('cam-q').addEventListener('input', () => {
+            clearTimeout(timer);
+            timer = setTimeout(async () => {
+              const q = $('cam-q').value.trim(); const my = ++seq;
+              if (!q) { $('cam-res').innerHTML = ''; return; }
+              const at = (base.place && base.place.lat != null ? base.place : null) || to.value.find((x) => x.lat != null) || from.value || {};
+              try {
+                const list = await api('GET', `/cameras?q=${encodeURIComponent(q)}${at.lat != null ? `&lat=${at.lat}&lon=${at.lon}` : ''}`);
+                if (my !== seq) return;
+                $('cam-res').innerHTML = list.length ? '' : `<li>${esc(t('camera.none'))}</li>`;
+                for (const c of list) {
+                  const li = document.createElement('li');
+                  li.innerHTML = `${esc(c.name)} <span>${c.km != null ? esc(t('camera.km', { km: c.km })) : ''}</span>`;
+                  li.addEventListener('click', () => {
+                    const have = options.cameras.find((x) => x.name === c.name);
+                    if (have) have.on = true; else options.cameras.push({ name: c.name, km: c.km, on: true });
+                    renderOptions();
+                  });
+                  $('cam-res').appendChild(li);
+                }
+              } catch (e) { $('cam-res').innerHTML = `<li>${esc(e.message || e)}</li>`; }
+            }, 250);
+          });
+        }
+        $('sensors').innerHTML = options ? `<label class="homey-form-label" style="margin-top:8px">${esc(t('settings.commutes.sensors'))}</label>${o.sensors.length ? o.sensors.map((x, i) => row(x, 'sensors', i)).join('') : `<div class="tk-hint">${esc(t('settings.commutes.noSensors'))}</div>`}` : '';
+        document.querySelectorAll('#cams input, #sensors input').forEach((cb) => cb.addEventListener('change', () => { options[cb.dataset.k][+cb.dataset.i].on = cb.checked; }));
+      }
+
+      $('c-car').addEventListener('change', () => { $('car').style.display = $('c-car').checked ? '' : 'none'; });
+      $('find').addEventListener('click', async () => {
+        const a = from.value; const b = (base.place && base.place.lat != null ? base.place : null) || to.value.find((x) => x.lat != null);
+        if (!a || a.lat == null || !b) { say('find-res', t('settings.commutes.needEnds'), true); return; }
+        say('find-res', t('common.searching'));
+        try {
+          const r = await api('GET', `/road-options?home=1&lat1=${a.lat}&lon1=${a.lon}&lat2=${b.lat}&lon2=${b.lon}`);
+          const keepCam = new Set((options ? options.cameras : []).filter((x) => x.on).map((x) => x.name));
+          const keepSen = new Set((options ? options.sensors : []).filter((x) => x.on).map((x) => x.name));
+          options = {
+            cameras: r.cameras.map((c) => ({ ...c, on: keepCam.has(c.name) })),
+            sensors: r.sensors.map((s) => ({ ...s, on: keepSen.has(s.name) || keepSen.size === 0 })),
+          };
+          if (!keepCam.size) { // suggest: the last three places before the destination, one camera each (≥ 1 km apart)
+            const picks = [];
+            for (const c of [...options.cameras].reverse()) {
+              if (picks.length < 3 && !picks.some((p) => Math.abs(p.km - c.km) < 1)) picks.push(c);
+            }
+            picks.forEach((c) => { c.on = true; });
+          }
+          say('find-res', tc('routeRes', { from: tc(r.fromHome ? 'fromHome' : 'fromStop') }));
+          renderOptions();
+        } catch (e) { say('find-res', e.message || String(e), true); }
+      });
+
+      function collect() {
+        const name = $('c-name').value.trim();
+        if (!name) throw new Error(t('settings.commutes.errName'));
+        if (!from.value) throw new Error(t('settings.commutes.errFrom'));
+        if (!to.value.length) throw new Error(t('settings.commutes.errTo'));
+        const c = { ...base };
+        delete c.transfer; // older single-stop form, replaced by transfers
+        if (!c.id) c.id = `${name.toLowerCase().replace(/[^a-z0-9åäö]+/g, '-').replace(/^-|-$/g, '') || 'commute'}-${Date.now().toString(36)}`;
+        Object.assign(c, {
+          name,
+          origin: from.value,
+          transfers: via.value,
+          destinations: to.value,
+          walk_to_stop: +$('c-walk').value || 0,
+          change_minutes: +$('c-change').value || 0,
+          active_hours: $('c-hours').value.trim(),
+          weekdays_only: $('c-weekdays').checked,
+          arrive_by: /^\d{1,2}[:.]\d{2}$/.test($('c-arrive').value.trim()) ? $('c-arrive').value.trim().replace('.', ':') : '',
+          remind_before: +$('c-remind').value || 0,
+          alerts: $('c-alerts').checked,
+          alert_delay: Math.max(1, +$('c-alert-delay').value || 5),
+        });
+        if ($('c-arrive').value.trim() && !c.arrive_by) throw new Error(t('settings.commutes.errArrive'));
+        if ($('c-car').checked) {
+          const d = { ...(base.drive || {}), enabled: true, minutes: +$('c-drive').value || null, roads: $('c-roads').value.trim() };
+          if (options) {
+            d.cameras = options.cameras.filter((x) => x.on).slice(0, 4).map((x) => x.name);
+            d.speed = options.sensors.filter((x) => x.on).map((x) => ({ name: x.name, lat: x.lat, lon: x.lon, radius_m: x.radius_m || 300 }));
+          }
+          // a route area saved earlier would be stale if the stops changed: let the app work it out again
+          if (!base.origin || base.origin.id !== from.value.id || JSON.stringify((base.destinations || []).map((x) => x.id)) !== JSON.stringify(to.value.map((x) => x.id))) {
+            delete d.lat; delete d.lon; delete d.radius_km;
+          }
+          c.drive = d;
+        } else if (c.drive) c.drive = { ...c.drive, enabled: false };
+        c.weather = $('c-weather').checked ? (Array.isArray(base.weather) && base.weather.length && base.origin && base.origin.id === from.value.id ? base.weather : true) : [];
+        return c;
+      }
+
+      $('add').addEventListener('click', async () => {
+        if (!(await get('trafiklab_key'))) { say('res', t('settings.commutes.addFirst'), true); return; }
+        edit(commutes.length);
+      });
+      $('c-cancel').addEventListener('click', () => { $('editor').style.display = 'none'; });
+      $('c-test').addEventListener('click', async () => {
+        try {
+          const c = collect();
+          say('c-res', t('settings.keys.testing'));
+          const r = await api('POST', '/commute-preview', c);
+          if (r.transit && r.transit.error) throw new Error(r.transit.error);
+          const n = r.transit.journeys.filter((j) => !j.canceled).length;
+          const extra = [r.drive && r.drive.error, r.weather && r.weather.error].filter(Boolean).join('\n');
+          say('c-res', (n ? t('settings.commutes.testOk', { n }) : t('settings.commutes.testNone')) + (extra ? `\n${extra}` : ''), !n);
+        } catch (e) { say('c-res', e.message || String(e), true); }
+      });
+      $('c-save').addEventListener('click', async () => {
+        try {
+          const c = collect();
+          commutes[editing] = c;
+          await set('commutes', commutes);
+          say('c-res', t('settings.commutes.saved'));
+          $('editor').style.display = 'none';
+          await load();
+          showGuide(c.name);
+        } catch (e) { say('c-res', e.message || String(e), true); }
+      });
+
+      $('saveJson').addEventListener('click', async () => {
+        let v;
+        try { v = $('json').value.trim() ? JSON.parse($('json').value) : []; } catch (e) { say('json-res', `${t('settings.commutes.badJson')} ${e.message}`, true); return; }
+        if (!Array.isArray(v)) v = [v];
+        try { await set('commutes', v); say('json-res', t('settings.commutes.savedN', { n: v.length })); load(); } catch (e) { say('json-res', e.message || String(e), true); }
+      });
+
+      load().finally(() => Homey.ready());
+    }
+  </script>
+</body>
+</html>

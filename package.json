@@ -1,0 +1,13 @@
+{
+  "name": "com.erikrichardson.trafik",
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "app.js",
+  "private": true,
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

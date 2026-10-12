@@ -1,0 +1,28 @@
+{
+  "title": {
+    "en": "Frost is likely when I leave",
+    "sv": "Det blir troligen frost när jag åker"
+  },
+  "titleFormatted": {
+    "en": "Frost !{{is|is not}} likely when I leave for [[commute]]",
+    "sv": "Det blir !{{troligen|inte}} frost när jag åker för [[commute]]"
+  },
+  "hint": {
+    "en": "True when the forecast is +1° or colder when you leave, or a nearby Trafikverket road sensor measures 0° or colder on the road surface.",
+    "sv": "Sant när prognosen är +1° eller kallare när du åker, eller när en närliggande vägsensor från Trafikverket mäter 0° eller kallare på vägbanan."
+  },
+  "args": [
+    {
+      "name": "commute",
+      "type": "autocomplete",
+      "title": {
+        "en": "Commute",
+        "sv": "Pendling"
+      },
+      "placeholder": {
+        "en": "Pick a commute",
+        "sv": "Välj en pendling"
+      }
+    }
+  ]
+}

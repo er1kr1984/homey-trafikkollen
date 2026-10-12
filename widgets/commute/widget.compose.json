@@ -1,0 +1,62 @@
+{
+  "name": {
+    "en": "Commute",
+    "sv": "Pendling"
+  },
+  "height": 520,
+  "transparent": false,
+  "settings": [
+    {
+      "id": "commute",
+      "type": "autocomplete",
+      "title": {
+        "en": "Commute (set up in the app settings)",
+        "sv": "Pendling (ställs in i appinställningarna)"
+      }
+    },
+    {
+      "id": "rows",
+      "type": "number",
+      "title": {
+        "en": "Public transport options",
+        "sv": "Antal kollektivtrafikalternativ"
+      },
+      "value": 4,
+      "min": 1,
+      "max": 8
+    },
+    {
+      "id": "show_drive",
+      "type": "checkbox",
+      "title": {
+        "en": "Show car route",
+        "sv": "Visa bilvägen"
+      },
+      "value": true
+    },
+    {
+      "id": "show_cameras",
+      "type": "checkbox",
+      "title": {
+        "en": "Show traffic cameras",
+        "sv": "Visa trafikkameror"
+      },
+      "value": true
+    },
+    {
+      "id": "show_weather",
+      "type": "checkbox",
+      "title": {
+        "en": "Show weather",
+        "sv": "Visa väder"
+      },
+      "value": true
+    }
+  ],
+  "api": {
+    "getCommute": {
+      "method": "GET",
+      "path": "/commute"
+    }
+  }
+}

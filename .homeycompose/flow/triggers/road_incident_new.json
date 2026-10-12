@@ -1,0 +1,69 @@
+{
+  "title": {
+    "en": "A new road incident appears",
+    "sv": "En ny trafikhändelse"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=road"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "text",
+      "type": "string",
+      "title": {
+        "en": "Message",
+        "sv": "Meddelande"
+      },
+      "example": "Olycka on E4 near Uppsala: Two cars, one lane closed"
+    },
+    {
+      "name": "type",
+      "type": "string",
+      "title": {
+        "en": "Type",
+        "sv": "Typ"
+      },
+      "example": "Olycka"
+    },
+    {
+      "name": "road",
+      "type": "string",
+      "title": {
+        "en": "Road",
+        "sv": "Väg"
+      },
+      "example": "E65"
+    },
+    {
+      "name": "location",
+      "type": "string",
+      "title": {
+        "en": "Location",
+        "sv": "Plats"
+      },
+      "example": "Uppsala - Stockholm"
+    },
+    {
+      "name": "message",
+      "type": "string",
+      "title": {
+        "en": "Details",
+        "sv": "Detaljer"
+      },
+      "example": "One lane closed"
+    },
+    {
+      "name": "severity",
+      "type": "number",
+      "title": {
+        "en": "Severity (1-5)",
+        "sv": "Allvarlighet (1-5)"
+      },
+      "example": 3
+    }
+  ]
+}

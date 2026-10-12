@@ -1,0 +1,20 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Slippery roads",
+    "sv": "Halt väglag"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/capabilities/snow.svg",
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Slippery",
+    "sv": "Halt"
+  },
+  "insightsTitleFalse": {
+    "en": "Normal",
+    "sv": "Normalt"
+  }
+}

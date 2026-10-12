@@ -1,0 +1,28 @@
+{
+  "title": {
+    "en": "Next departure !{{is|is not}} delayed by at least ... min",
+    "sv": "Nästa avgång !{{är|är inte}} försenad minst ... min"
+  },
+  "titleFormatted": {
+    "en": "Next departure !{{is|is not}} delayed by at least [[minutes]] min",
+    "sv": "Nästa avgång !{{är|är inte}} försenad minst [[minutes]] min"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=departures"
+    },
+    {
+      "name": "minutes",
+      "type": "number",
+      "min": 0,
+      "max": 120,
+      "step": 1,
+      "placeholder": {
+        "en": "3",
+        "sv": "3"
+      }
+    }
+  ]
+}

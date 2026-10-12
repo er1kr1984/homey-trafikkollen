@@ -1,0 +1,34 @@
+{
+  "name": {
+    "en": "Road traffic",
+    "sv": "Vägtrafik"
+  },
+  "class": "sensor",
+  "capabilities": [
+    "road_incidents",
+    "road_summary",
+    "road_condition",
+    "alarm_road_slippery"
+  ],
+  "platforms": [
+    "local"
+  ],
+  "connectivity": [
+    "cloud"
+  ],
+  "images": {
+    "small": "/drivers/road/assets/images/small.png",
+    "large": "/drivers/road/assets/images/large.png",
+    "xlarge": "/drivers/road/assets/images/xlarge.png"
+  },
+  "pair": [
+    {
+      "id": "setup"
+    }
+  ],
+  "repair": [
+    {
+      "id": "camera"
+    }
+  ]
+}

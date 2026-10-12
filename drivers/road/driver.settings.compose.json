@@ -1,0 +1,216 @@
+[
+  {
+    "type": "group",
+    "label": {
+      "en": "Where",
+      "sv": "Var"
+    },
+    "children": [
+      {
+        "id": "roads",
+        "type": "text",
+        "label": {
+          "en": "Roads",
+          "sv": "Vägar"
+        },
+        "value": "",
+        "hint": {
+          "en": "Which roads to keep an eye on. Write the road numbers with commas between them, for example: E6, E22, 108. Leave it empty to watch every road in the area.",
+          "sv": "Vilka vägar du vill hålla koll på. Skriv vägnumren med komma emellan, till exempel: E6, E22, 108. Lämna tomt för att bevaka alla vägar i området."
+        }
+      },
+      {
+        "id": "lat",
+        "type": "number",
+        "label": {
+          "en": "Centre latitude",
+          "sv": "Mittpunkt, latitud"
+        },
+        "value": 55.6,
+        "min": 55,
+        "max": 69.1,
+        "hint": {
+          "en": "The middle of the area to watch. It starts as your Homey's location. Tip: find a place on Google Maps, right-click it and copy the first number shown.",
+          "sv": "Mitten av området som bevakas. Från början är det din Homeys plats. Tips: hitta platsen på Google Maps, högerklicka och kopiera den första siffran som visas."
+        }
+      },
+      {
+        "id": "lon",
+        "type": "number",
+        "label": {
+          "en": "Centre longitude",
+          "sv": "Mittpunkt, longitud"
+        },
+        "value": 13.0,
+        "min": 10.9,
+        "max": 24.2,
+        "hint": {
+          "en": "The second number from the same place on Google Maps.",
+          "sv": "Den andra siffran från samma plats på Google Maps."
+        }
+      },
+      {
+        "id": "radius_km",
+        "type": "number",
+        "label": {
+          "en": "Radius",
+          "sv": "Radie"
+        },
+        "value": 15,
+        "min": 1,
+        "max": 200,
+        "hint": {
+          "en": "How far out from the middle to look for traffic messages. 15 km covers a town and its surroundings.",
+          "sv": "Hur långt från mitten som trafikmeddelanden hämtas. 15 km täcker en ort med omgivning."
+        },
+        "units": {
+          "en": "km",
+          "sv": "km"
+        }
+      }
+    ]
+  },
+  {
+    "type": "group",
+    "label": {
+      "en": "What",
+      "sv": "Vad"
+    },
+    "children": [
+      {
+        "id": "include_roadworks",
+        "type": "checkbox",
+        "label": {
+          "en": "Include roadworks",
+          "sv": "Ta med vägarbeten"
+        },
+        "value": true,
+        "hint": {
+          "en": "Roadworks often last for weeks. Untick this if you only want to hear about accidents, queues and other sudden problems.",
+          "sv": "Vägarbeten pågår ofta i veckor. Avmarkera om du bara vill höra om olyckor, köer och andra plötsliga problem."
+        }
+      },
+      {
+        "id": "include_ferries",
+        "type": "checkbox",
+        "label": {
+          "en": "Include ferry messages",
+          "sv": "Ta med färjemeddelanden"
+        },
+        "value": false,
+        "hint": {
+          "en": "",
+          "sv": ""
+        }
+      },
+      {
+        "id": "min_severity",
+        "type": "number",
+        "label": {
+          "en": "Minimum severity",
+          "sv": "Lägsta allvarlighet"
+        },
+        "value": 0,
+        "min": 0,
+        "max": 5,
+        "hint": {
+          "en": "Trafikverket rates how much each problem affects traffic, from 1 (hardly at all) to 5 (very much). Set for example 3 to skip the small ones. 0 = show everything.",
+          "sv": "Trafikverket bedömer hur mycket varje problem påverkar trafiken, från 1 (knappt alls) till 5 (mycket). Ange till exempel 3 för att hoppa över de små. 0 = visa allt."
+        }
+      },
+      {
+        "id": "camera",
+        "type": "text",
+        "label": {
+          "en": "Traffic camera",
+          "sv": "Trafikkamera"
+        },
+        "value": "",
+        "hint": {
+          "en": "Which traffic camera to show as this device's picture. Type a place name, for example Uppsala, and press Save. The camera the app chose, and other cameras with that name, are listed just below.\n\nWant to pick from a list with photos instead? Open this device, go to its settings and tap Repair. (Homey calls the button Repair, but nothing is broken: it is where the camera picker is.)\n\nLeave empty to use the camera closest to the area.",
+          "sv": "Vilken trafikkamera som visas som enhetens bild. Skriv ett ortnamn, till exempel Uppsala, och tryck Spara. Kameran som appen valde, och andra kameror med det namnet, visas strax nedanför.\n\nVill du hellre välja i en lista med bilder? Öppna enheten, gå till dess inställningar och tryck på Reparera. (Homey kallar knappen Reparera, men inget är trasigt: det är där kameraväljaren finns.)\n\nLämna tomt för att använda kameran närmast området."
+        }
+      },
+      {
+        "id": "camera_in_use",
+        "type": "label",
+        "label": {
+          "en": "Camera in use",
+          "sv": "Kamera som används"
+        },
+        "value": "–",
+        "hint": {
+          "en": "The camera shown right now. Filled in by the app after you save.",
+          "sv": "Kameran som visas just nu. Fylls i av appen när du har sparat."
+        }
+      },
+      {
+        "id": "camera_matches",
+        "type": "label",
+        "label": {
+          "en": "Other matches",
+          "sv": "Andra träffar"
+        },
+        "value": "–",
+        "hint": {
+          "en": "Other cameras whose name matches what you typed, closest first. To use one of them, copy its name (without the km part) into Traffic camera and save.",
+          "sv": "Andra kameror vars namn matchar det du skrev, närmast först. Vill du använda en av dem: kopiera namnet (utan km-delen) till Trafikkamera och spara."
+        }
+      }
+    ]
+  },
+  {
+    "type": "group",
+    "label": {
+      "en": "Alerts and updates",
+      "sv": "Larm och uppdateringar"
+    },
+    "children": [
+      {
+        "id": "active_hours",
+        "type": "text",
+        "label": {
+          "en": "Active hours",
+          "sv": "Aktiva timmar"
+        },
+        "value": "",
+        "hint": {
+          "en": "The times when you want alerts, for example 06:30-09:00, 15:30-18:00. Leave empty for alerts at any time. Outside these times the device also checks less often.",
+          "sv": "Tiderna då du vill ha larm, till exempel 06:30-09:00, 15:30-18:00. Lämna tomt för larm när som helst. Utanför tiderna kollar enheten också mer sällan."
+        }
+      },
+      {
+        "id": "weekdays_only",
+        "type": "checkbox",
+        "label": {
+          "en": "Weekdays only",
+          "sv": "Bara vardagar"
+        },
+        "value": false,
+        "hint": {
+          "en": "Only fire alerts and reminders Monday-Friday.",
+          "sv": "Kör bara larm och påminnelser måndag–fredag."
+        }
+      },
+      {
+        "id": "poll_minutes",
+        "type": "number",
+        "label": {
+          "en": "Update every",
+          "sv": "Uppdatera var"
+        },
+        "value": 5,
+        "min": 2,
+        "max": 60,
+        "hint": {
+          "en": "",
+          "sv": ""
+        },
+        "units": {
+          "en": "min",
+          "sv": "min"
+        }
+      }
+    ]
+  }
+]

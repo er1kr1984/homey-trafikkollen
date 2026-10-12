@@ -1,0 +1,11 @@
+{
+  "type": "string",
+  "title": {
+    "en": "Then",
+    "sv": "Sedan"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/capabilities/list.svg"
+}

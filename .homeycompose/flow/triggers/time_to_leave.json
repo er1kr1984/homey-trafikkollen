@@ -1,0 +1,91 @@
+{
+  "title": {
+    "en": "Time to leave",
+    "sv": "Dags att gå"
+  },
+  "hint": {
+    "en": "Fires 'remind me' minutes before you need to leave (departure time minus walking time), once per trip, during active hours.",
+    "sv": "Körs 'påminn mig'-minuter innan du behöver gå (avgångstid minus gångtid), en gång per tur, under aktiva timmar."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=departures|ferry"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "text",
+      "type": "string",
+      "title": {
+        "en": "Message",
+        "sv": "Meddelande"
+      },
+      "example": "Leave in 5 min for the 07:42 Pendeltåg 43 → Stockholm C"
+    },
+    {
+      "name": "line",
+      "type": "string",
+      "title": {
+        "en": "Line",
+        "sv": "Linje"
+      },
+      "example": "1043"
+    },
+    {
+      "name": "direction",
+      "type": "string",
+      "title": {
+        "en": "Direction",
+        "sv": "Riktning"
+      },
+      "example": "Stockholm C"
+    },
+    {
+      "name": "scheduled",
+      "type": "string",
+      "title": {
+        "en": "Scheduled time",
+        "sv": "Avgångstid enligt tidtabell"
+      },
+      "example": "07:42"
+    },
+    {
+      "name": "expected",
+      "type": "string",
+      "title": {
+        "en": "Expected time",
+        "sv": "Beräknad tid"
+      },
+      "example": "07:45"
+    },
+    {
+      "name": "delay",
+      "type": "number",
+      "title": {
+        "en": "Delay (min)",
+        "sv": "Försening (min)"
+      },
+      "example": 3
+    },
+    {
+      "name": "platform",
+      "type": "string",
+      "title": {
+        "en": "Platform",
+        "sv": "Läge"
+      },
+      "example": "2"
+    },
+    {
+      "name": "leave_in",
+      "type": "number",
+      "title": {
+        "en": "Leave in (min)",
+        "sv": "Gå om (min)"
+      },
+      "example": 5
+    }
+  ]
+}
