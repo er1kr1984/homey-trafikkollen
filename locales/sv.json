@@ -213,7 +213,9 @@
       "minAgo": "för {{n}} min sedan",
       "Cancelled": "Inställd",
       "track": "spår {{n}}"
-    }
+    },
+    "reportedAt": "rapporterad {{time}}",
+    "changedAt": "uppdaterad {{time}}"
   },
   "road": {
     "noCamera": "Det finns ingen trafikkamera som heter \"{{name}}\". Prova ett kortare namn, till exempel bara orten. Eller öppna enhetens inställningar och tryck på Reparera för att välja i en lista med bilder."

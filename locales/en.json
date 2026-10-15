@@ -213,7 +213,9 @@
       "minAgo": "{{n}} min ago",
       "Cancelled": "Cancelled",
       "track": "track {{n}}"
-    }
+    },
+    "reportedAt": "reported {{time}}",
+    "changedAt": "updated {{time}}"
   },
   "road": {
     "noCamera": "There's no traffic camera called \"{{name}}\". Try a shorter name, for example just the town. Or open this device's settings and tap Repair to choose from a list with photos."

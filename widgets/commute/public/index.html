@@ -58,6 +58,7 @@
     .inc .t { font-weight: 600; }
     .inc { cursor: pointer; }
     .inc .m { color: var(--tk-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .inc .r { color: var(--tk-muted); font-size: 11px; margin-top: 1px; }
     .inc .t::after { content: '›'; float: right; color: var(--tk-muted); font-weight: 400; transition: transform .15s; }
     .inc.open .t::after { transform: rotate(90deg); }
     .inc.open .m { white-space: normal; }
@@ -99,7 +100,7 @@
 
   <script type="text/javascript">
     // English fallback in case translations are unavailable
-    const EN = {"locale": "en-GB", "loading": "Loading…", "publicTransport": "Public transport", "car": "Car", "weather": "Weather", "from": "from {{place}}", "walk": "{{n}} min walk", "leave": "leave {{time}}", "noConnection": "no connection found", "noData": "no data", "ifNow": "if you leave now · ~{{n}} min", "slippery": "slippery!", "inMin": "in {{n}} min", "later": "later", "leaveNow": "leave now", "missed": "missed", "cancelled": "cancelled", "Cancelled": "Cancelled", "atWork": "arrive", "changeAt": "{{n}} min change at {{stop}}", "noConnections": "No connections found in the next two hours", "road": "Road", "messages": "{{n}} message(s) on {{roads}}", "until": "until {{date}}", "thisMorning": "today", "frozen": "❄️ Snow or sleet during the commute: allow extra time", "cold": "🧊 Near freezing: frost on the car, and roads may be slippery", "rain": "☔ Rain during the commute", "updated": "updated {{age}}", "justNow": "just now", "minAgo": "{{n}} min ago", "showAll": "Show all {{n}} messages", "showFewer": "Show fewer", "lanes": "{{n}} lane(s) closed", "tapHint": "Tap a message to read it", "track": "track {{n}}", "lateWarn": "late!", "carLeave": "leave by {{time}} · ~{{n}} min", "arriveBy": "Planned to arrive by {{time}}", "heater": "🔌 Engine heater from {{time}} ({{n}} min, {{temp}}° when you leave)", "surface": "Road surface {{temp}}° ({{place}})"};
+    const EN = {"locale": "en-GB", "loading": "Loading…", "publicTransport": "Public transport", "car": "Car", "weather": "Weather", "from": "from {{place}}", "walk": "{{n}} min walk", "leave": "leave {{time}}", "noConnection": "no connection found", "noData": "no data", "ifNow": "if you leave now · ~{{n}} min", "slippery": "slippery!", "inMin": "in {{n}} min", "later": "later", "leaveNow": "leave now", "missed": "missed", "cancelled": "cancelled", "Cancelled": "Cancelled", "atWork": "arrive", "changeAt": "{{n}} min change at {{stop}}", "noConnections": "No connections found in the next two hours", "road": "Road", "messages": "{{n}} message(s) on {{roads}}", "until": "until {{date}}", "thisMorning": "today", "frozen": "❄️ Snow or sleet during the commute: allow extra time", "cold": "🧊 Near freezing: frost on the car, and roads may be slippery", "rain": "☔ Rain during the commute", "updated": "updated {{age}}", "justNow": "just now", "minAgo": "{{n}} min ago", "showAll": "Show all {{n}} messages", "showFewer": "Show fewer", "lanes": "{{n}} lane(s) closed", "tapHint": "Tap a message to read it", "track": "track {{n}}", "lateWarn": "late!", "carLeave": "leave by {{time}} · ~{{n}} min", "arriveBy": "Planned to arrive by {{time}}", "heater": "🔌 Engine heater from {{time}} ({{n}} min, {{temp}}° when you leave)", "surface": "Road surface {{temp}}° ({{place}})", "reportedAt": "reported {{time}}", "changedAt": "updated {{time}}"};
     const tr = (k, v = {}) => {
       let s = H && typeof H.__ === 'function' ? H.__(`widget.${k}`) : null;
       if (!s || s === `widget.${k}`) s = String(EN[k] || k).replace(/{{(\w+)}}/g, (_, n) => v[n] ?? '');
@@ -177,6 +178,14 @@
         const icon = /olycka/i.test(i.type) ? '💥' : /vägarbete/i.test(i.type) ? '🚧' : /kö|queue/i.test(i.type + i.message) ? '🚗' : '⚠️';
         const where = String(i.location || '').replace(/ i [A-ZÅÄÖ][a-zåäö]+ län.*$/, '').trim();
         const until = i.end ? ` · ${tr('until', { date: day(i.end) })}` : '';
+        // When it was reported: the time today, else the date and time.
+        const stamp = (t) => {
+          const x = new Date(t);
+          const hm = x.toLocaleTimeString(tr('locale'), { hour: '2-digit', minute: '2-digit', timeZone: TZ });
+          return new Date().toDateString() === x.toDateString() ? hm : `${day(t)} ${hm}`;
+        };
+        const reported = i.reported ? tr('reportedAt', { time: stamp(i.reported) }) : '';
+        const changed = i.updated && i.updated !== i.reported ? tr('changedAt', { time: stamp(i.updated) }) : '';
         // full text, unless it only repeats the headline ("Vägarbete. ")
         const text = String(i.message || '').trim();
         const says = text && text.replace(/[.\s]+$/, '').toLowerCase() !== String(i.type).toLowerCase() ? text : '';
@@ -191,7 +200,8 @@
         return `<div class="inc ${openInc.has(key) ? 'open' : ''}" data-k="${esc(key)}"><div>${icon}</div><div>
           <div class="t">${esc(i.type)}${i.road ? ` · ${esc(i.road)}` : ''}</div>
           <div class="m">${esc(where || says || i.code || '')}${esc(until)}</div>
-          <div class="x">${says ? `<p>${esc(says)}</p>` : ''}${tags ? `<div>${tags}</div>` : ''}${when ? `<div class="meta">🗓 ${esc(when)}</div>` : ''}</div>
+          ${reported ? `<div class="r">🕒 ${esc(reported)}</div>` : ''}
+          <div class="x">${says ? `<p>${esc(says)}</p>` : ''}${tags ? `<div>${tags}</div>` : ''}${when ? `<div class="meta">🗓 ${esc(when)}</div>` : ''}${changed ? `<div class="meta">✏️ ${esc(changed)}</div>` : ''}</div>
         </div></div>`;
       }).join('') + (all.length > 4 ? `<button class="more" data-more>${esc(showAllInc ? tr('showFewer') : tr('showAll', { n: all.length }))}</button>` : '');
       let cams = '';
