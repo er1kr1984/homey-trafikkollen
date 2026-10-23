@@ -1,6 +1,6 @@
 {
   "id": "com.erikrichardson.trafik",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "compatibility": ">=12.1.0",
   "runtime": "nodejs",
   "sdk": 3,
@@ -13,8 +13,8 @@
     "sv": "Trafikkollen"
   },
   "description": {
-    "en": "Live departures, door-to-door commutes, road traffic, ferries and smart morning alerts for all of Sweden.",
-    "sv": "Avgångar i realtid, pendling från dörr till dörr, vägtrafik, färjor och smarta morgonlarm för hela Sverige."
+    "en": "Live bus, train, tram and metro departures, door-to-door commutes, road traffic and ferries for all of Sweden.",
+    "sv": "Bussar, tåg, spårvagnar och tunnelbana i realtid, pendling från dörr till dörr, vägtrafik och färjor i hela Sverige."
   },
   "category": [
     "tools"
@@ -24,18 +24,23 @@
       "avgångar",
       "bus",
       "commute",
+      "commuter train",
       "departures",
       "engine heater",
       "ferry",
+      "metro",
+      "public transport",
       "road traffic",
       "school bus",
       "skånetrafiken",
       "sl",
+      "subway",
       "sweden",
       "trafik",
       "trafiklab",
       "trafikverket",
       "train",
+      "tram",
       "västtrafik"
     ],
     "sv": [
@@ -44,13 +49,16 @@
       "färja",
       "kollektivtrafik",
       "motorvärmare",
+      "pendeltåg",
       "pendling",
       "skolbuss",
       "skånetrafiken",
       "sl",
+      "spårvagn",
       "trafik",
       "trafiklab",
       "trafikverket",
+      "tunnelbana",
       "tåg",
       "väglag",
       "västtrafik"

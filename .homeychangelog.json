@@ -1,4 +1,8 @@
 {
+  "1.2.1": {
+    "en": "Clearer store description: buses, trains, trams and the metro are now mentioned by name. Everything from 1.2.0 is included.",
+    "sv": "Tydligare beskrivning i butiken: bussar, tåg, spårvagnar och tunnelbana nämns nu vid namn. Allt från 1.2.0 ingår."
+  },
   "1.2.0": {
     "en": "New widgets: \"Time to leave\" (a careful countdown: plans by the timetable even when a bus is reported late, and warns when the times are old), traffic cameras, road ferry (both directions), and Trafiklab usage. Commutes look further ahead when buses are rare, and show your next commute outside commute hours. New Flow cards: next departure, camera picture, road status, pause alerts, commute day, \"a departure leaves in … minutes\", \"I will be late\", \"problem resolved\" and more. New road incidents now come with a picture from the nearest camera. The settings show how many Trafiklab and Trafikverket requests the app makes. Widgets load faster.",
     "sv": "Nya widgetar: \"Dags att gå\" (en försiktig nedräkning: räknar med tidtabellen även när en buss sägs vara sen, och varnar när tiderna är gamla), trafikkameror, vägfärja (båda riktningarna) och Trafiklab-användning. Pendlingar letar längre fram när bussarna går sällan, och visar nästa pendling utanför pendlingstiden. Nya Flow-kort: nästa avgång, kamerabild, vägläge, pausa larm, pendlingsdag, \"en avgång går om … minuter\", \"jag blir sen\", \"problemet är löst\" med flera. Nya trafikhändelser kommer nu med en bild från närmaste kamera. Inställningarna visar hur många anrop appen gör till Trafiklab och Trafikverket. Widgetarna laddar snabbare."
