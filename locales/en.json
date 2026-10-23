@@ -1,5 +1,5 @@
 {
-  "appName": "Trafikkollen",
+  "appName": "Live Traffic & Transit Sweden",
   "common": {
     "search": "Search",
     "searching": "Searching…",
@@ -32,7 +32,7 @@
     "road": {
       "title": "Watch roads",
       "subtitle": "Get accidents, roadworks, queues and slippery-road warnings from Trafikverket for an area and the roads you care about.",
-      "noKey": "Add your Trafikverket API key in the app settings (Apps > Trafikkollen > Configure) or this device will show as unavailable.",
+      "noKey": "Add your Trafikverket API key in the app settings (Apps > Live Traffic & Transit Sweden > Configure) or this device will show as unavailable.",
       "name": "Name",
       "namePh": "e.g. Commute to work",
       "roads": "Roads",
@@ -49,7 +49,7 @@
     "subtitle": "Live departures, door-to-door commutes and road traffic for all of Sweden.",
     "keys": {
       "title": "1. API keys (free)",
-      "intro": "Trafikkollen gets its data straight from the official open APIs. Each Homey uses its own free keys, which takes about five minutes to set up.",
+      "intro": "This app gets its data straight from the official open APIs. Each Homey uses its own free keys, which takes about five minutes to set up.",
       "tlLabel": "Trafiklab key (public transport)",
       "tvLabel": "Trafikverket key (roads, cameras)",
       "tlSteps": "<li>Create a free account at <b>trafiklab.se</b> and log in.</li><li>Open <b>My projects</b> → <b>Create new project</b> (any name).</li><li>In the project, add the API <b>Trafiklab Realtime APIs</b> with the <b>Bronze</b> level (free).</li><li>Copy the key that appears and paste it here.</li>",
@@ -145,14 +145,14 @@
       "returnHint": "Make the same trip in the other direction",
       "returnCheck": "This is the trip home, made from the commute. Check the times and press Save.",
       "guideTitle": "Saved! Put it on a dashboard:",
-      "guideSteps": "<li>In the Homey app, open <b>Dashboards</b> (at the bottom).</li><li>Make a new dashboard with <b>+</b>, or open one and tap <b>Edit</b>.</li><li>Tap <b>+ Add widget</b> → <b>Trafikkollen</b> → <b>Commute</b>.</li><li>In the widget settings, pick <b>{{name}}</b>.</li>",
+      "guideSteps": "<li>In the Homey app, open <b>Dashboards</b> (at the bottom).</li><li>Make a new dashboard with <b>+</b>, or open one and tap <b>Edit</b>.</li><li>Tap <b>+ Add widget</b> → <b>Live Traffic & Transit Sweden</b> → <b>Commute</b>.</li><li>In the widget settings, pick <b>{{name}}</b>.</li>",
       "alerts": "Problem alerts",
       "alertsOn": "Send problems to my phone",
       "alertsHint": "In the commute hours: cancelled or late trips, messages about your lines, accidents and other road messages on the car route (not roadworks), slippery roads and queues. Each problem is sent once a day as a Homey notification (it reaches your phone if notifications are on for this app in the Homey app). You can also use the Flow card \"There is a problem on a commute\".",
       "alertDelay": "Alert when a trip is at least",
       "alertDelayUnit": "min late"
     },
-    "credits": "Data: Trafiklab.se (CC BY 4.0), Trafikverket (open data), SMHI (CC BY 4.0) and © OpenStreetMap contributors (address search). Trafikkollen is not affiliated with them."
+    "credits": "Data: Trafiklab.se (CC BY 4.0), Trafikverket (open data), SMHI (CC BY 4.0) and © OpenStreetMap contributors (address search). This app is not affiliated with them."
   },
   "widget": {
     "locale": "en-GB",
@@ -260,21 +260,21 @@
     "km": "{{km}} km away",
     "fromWhere": "Which side do you leave from?",
     "from": "From {{name}}",
-    "noKey": "Add your Trafikverket key in the Trafikkollen app settings first.",
+    "noKey": "Add your Trafikverket key in the app settings first.",
     "gone": "This ferry route no longer exists.",
     "none": "No departures in the next 6 hours",
     "leaveIn": "Leave in {{n}} min for",
     "leaveNow": "Leave now for"
   },
   "errors": {
-    "noTrafiklabKey": "Add your free Trafiklab key first: in the Homey app, go to Apps > Trafikkollen > Configure and follow the steps.",
-    "noTrafikverketKey": "Add your free Trafikverket key first: in the Homey app, go to Apps > Trafikkollen > Configure and follow the steps.",
-    "badTrafiklabKey": "Trafiklab did not accept your key. Check it under Apps > Trafikkollen > Configure and tap \"Save and test keys\".",
-    "badTrafikverketKey": "Trafikverket did not accept your key. Check it under Apps > Trafikkollen > Configure and tap \"Save and test keys\".",
+    "noTrafiklabKey": "Add your free Trafiklab key first: in the Homey app, go to Apps > Live Traffic & Transit Sweden > Configure and follow the steps.",
+    "noTrafikverketKey": "Add your free Trafikverket key first: in the Homey app, go to Apps > Live Traffic & Transit Sweden > Configure and follow the steps.",
+    "badTrafiklabKey": "Trafiklab did not accept your key. Check it under Apps > Live Traffic & Transit Sweden > Configure and tap \"Save and test keys\".",
+    "badTrafikverketKey": "Trafikverket did not accept your key. Check it under Apps > Live Traffic & Transit Sweden > Configure and tap \"Save and test keys\".",
     "quota": "Too many requests to Trafiklab right now. It fixes itself within a minute; if it keeps happening, poll less often in the device settings.",
-    "noBoard": "Add a stop first: Devices > + > Trafikkollen > Departure board.",
+    "noBoard": "Add a stop first: Devices > + > Live Traffic & Transit Sweden > Departure board.",
     "boardRemoved": "That stop was removed. Pick another one in the widget settings.",
-    "noCommute": "No commute yet. Add one under Apps > Trafikkollen > Configure > Commutes.",
+    "noCommute": "No commute yet. Add one under Apps > Live Traffic & Transit Sweden > Configure > Commutes.",
     "commuteRemoved": "That commute was removed. Pick another one in the widget settings.",
     "unreachable": "Can't reach Trafiklab right now: {{msg}}"
   },

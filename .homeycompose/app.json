@@ -1,6 +1,6 @@
 {
   "id": "com.erikrichardson.trafik",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "compatibility": ">=12.1.0",
   "runtime": "nodejs",
   "sdk": 3,
@@ -9,7 +9,7 @@
   ],
   "brandColor": "#0b5394",
   "name": {
-    "en": "Trafikkollen",
+    "en": "Live Traffic & Transit Sweden",
     "sv": "Trafikkollen"
   },
   "description": {

@@ -1,5 +1,7 @@
 # Trafikkollen (Homey app)
 
+_In the Homey App Store the app is listed as **Trafikkollen** in Swedish and **Live Traffic & Transit Sweden** in English._
+
 Live public transport departures, delay alerts, leave-now reminders and road traffic for anywhere in Sweden.
 Data: Trafiklab Realtime APIs (CC BY 4.0, credit Trafiklab.se) and Trafikverket open API.
 
