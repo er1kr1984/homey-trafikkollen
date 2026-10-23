@@ -3,6 +3,10 @@
     "en": "A road incident is cleared",
     "sv": "En trafikhändelse är över"
   },
+  "hint": {
+    "en": "Runs when a traffic message on the roads this device watches ends, for example when an accident has been cleared. Only during the device's active hours.",
+    "sv": "Körs när ett trafikmeddelande på vägarna som enheten bevakar upphör, till exempel när en olycka har röjts undan. Bara under enhetens aktiva timmar."
+  },
   "args": [
     {
       "name": "device",

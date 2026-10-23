@@ -3,6 +3,10 @@
     "en": "There !{{are|are no}} road incidents",
     "sv": "Det !{{finns|finns inga}} trafikhändelser"
   },
+  "hint": {
+    "en": "Checks whether there are traffic messages right now on the roads this device watches. Roadworks only count if \"Include roadworks\" is on in the device settings.",
+    "sv": "Kollar om det just nu finns trafikmeddelanden på vägarna som enheten bevakar. Vägarbeten räknas bara om \"Ta med vägarbeten\" är påslaget i enhetens inställningar."
+  },
   "args": [
     {
       "name": "device",

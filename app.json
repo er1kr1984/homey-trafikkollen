@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.erikrichardson.trafik",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "compatibility": ">=12.1.0",
   "runtime": "nodejs",
   "sdk": 3,
@@ -845,6 +845,10 @@
           "en": "A road incident is cleared",
           "sv": "En trafikhändelse är över"
         },
+        "hint": {
+          "en": "Runs when a traffic message on the roads this device watches ends, for example when an accident has been cleared. Only during the device's active hours.",
+          "sv": "Körs när ett trafikmeddelande på vägarna som enheten bevakar upphör, till exempel när en olycka har röjts undan. Bara under enhetens aktiva timmar."
+        },
         "args": [
           {
             "name": "device",
@@ -996,6 +1000,10 @@
         "title": {
           "en": "Slippery-road warning turned on or off",
           "sv": "Halkvarning slogs på eller av"
+        },
+        "hint": {
+          "en": "Runs when Trafikverket's slippery-road warning for the watched roads starts or stops. The Slippery tag tells you which. Example: When the warning turns on or off → if Slippery is yes, send a push \"Slippery roads, drive carefully\".",
+          "sv": "Körs när Trafikverkets halkvarning för vägarna du bevakar börjar eller slutar. Taggen Halt visar vilket. Exempel: När halkvarningen slås på eller av → om Halt är ja, skicka en push \"Halt väglag, kör försiktigt\"."
         },
         "args": [
           {
@@ -1339,6 +1347,10 @@
           "en": "Next departure !{{is|is not}} delayed by at least [[minutes]] min",
           "sv": "Nästa avgång !{{är|är inte}} försenad minst [[minutes]] min"
         },
+        "hint": {
+          "en": "Checks the next departure you can still reach, walking time included. Example: Weekdays at 07:00 → if the next departure is delayed by at least 5 min → send a push.",
+          "sv": "Kollar nästa avgång du hinner till, gångtiden inräknad. Exempel: Vardagar kl. 07:00 → om nästa avgång är försenad minst 5 min → skicka en push."
+        },
         "args": [
           {
             "name": "device",
@@ -1397,6 +1409,10 @@
           "en": "There !{{are|are no}} road incidents",
           "sv": "Det !{{finns|finns inga}} trafikhändelser"
         },
+        "hint": {
+          "en": "Checks whether there are traffic messages right now on the roads this device watches. Roadworks only count if \"Include roadworks\" is on in the device settings.",
+          "sv": "Kollar om det just nu finns trafikmeddelanden på vägarna som enheten bevakar. Vägarbeten räknas bara om \"Ta med vägarbeten\" är påslaget i enhetens inställningar."
+        },
         "args": [
           {
             "name": "device",
@@ -1410,6 +1426,10 @@
         "title": {
           "en": "Roads !{{are|are not}} slippery",
           "sv": "Vägarna !{{är|är inte}} hala"
+        },
+        "hint": {
+          "en": "Checks Trafikverket's road condition for the watched roads right now. Slippery means ice, snow or frost is reported or likely.",
+          "sv": "Kollar Trafikverkets väglag för vägarna du bevakar just nu. Halt betyder att is, snö eller frost rapporteras eller är trolig."
         },
         "args": [
           {
@@ -1731,6 +1751,10 @@
         "title": {
           "en": "Refresh now",
           "sv": "Uppdatera nu"
+        },
+        "hint": {
+          "en": "Fetches new data for the device straight away. Usually not needed: devices update by themselves, more often during their active hours.",
+          "sv": "Hämtar ny data för enheten direkt. Behövs oftast inte: enheterna uppdateras av sig själva, oftare under sina aktiva timmar."
         },
         "args": [
           {

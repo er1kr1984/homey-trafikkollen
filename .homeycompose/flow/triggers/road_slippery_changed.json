@@ -3,6 +3,10 @@
     "en": "Slippery-road warning turned on or off",
     "sv": "Halkvarning slogs på eller av"
   },
+  "hint": {
+    "en": "Runs when Trafikverket's slippery-road warning for the watched roads starts or stops. The Slippery tag tells you which. Example: When the warning turns on or off → if Slippery is yes, send a push \"Slippery roads, drive carefully\".",
+    "sv": "Körs när Trafikverkets halkvarning för vägarna du bevakar börjar eller slutar. Taggen Halt visar vilket. Exempel: När halkvarningen slås på eller av → om Halt är ja, skicka en push \"Halt väglag, kör försiktigt\"."
+  },
   "args": [
     {
       "name": "device",

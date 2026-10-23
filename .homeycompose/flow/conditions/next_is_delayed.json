@@ -7,6 +7,10 @@
     "en": "Next departure !{{is|is not}} delayed by at least [[minutes]] min",
     "sv": "Nästa avgång !{{är|är inte}} försenad minst [[minutes]] min"
   },
+  "hint": {
+    "en": "Checks the next departure you can still reach, walking time included. Example: Weekdays at 07:00 → if the next departure is delayed by at least 5 min → send a push.",
+    "sv": "Kollar nästa avgång du hinner till, gångtiden inräknad. Exempel: Vardagar kl. 07:00 → om nästa avgång är försenad minst 5 min → skicka en push."
+  },
   "args": [
     {
       "name": "device",

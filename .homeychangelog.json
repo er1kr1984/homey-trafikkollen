@@ -1,4 +1,8 @@
 {
+  "1.2.3": {
+    "en": "Shorter store description, and help texts on every Flow card. Everything from 1.2.0 to 1.2.2 is included.",
+    "sv": "Kortare beskrivning i butiken och hjälptexter på alla Flow-kort. Allt från 1.2.0 till 1.2.2 ingår."
+  },
   "1.2.2": {
     "en": "New preview pictures for all widgets. Everything from 1.2.0 and 1.2.1 is included.",
     "sv": "Nya förhandsbilder för alla widgetar. Allt från 1.2.0 och 1.2.1 ingår."

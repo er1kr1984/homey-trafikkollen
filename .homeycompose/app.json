@@ -1,6 +1,6 @@
 {
   "id": "com.erikrichardson.trafik",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "compatibility": ">=12.1.0",
   "runtime": "nodejs",
   "sdk": 3,

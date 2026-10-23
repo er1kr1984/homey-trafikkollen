@@ -3,6 +3,10 @@
     "en": "Roads !{{are|are not}} slippery",
     "sv": "Vägarna !{{är|är inte}} hala"
   },
+  "hint": {
+    "en": "Checks Trafikverket's road condition for the watched roads right now. Slippery means ice, snow or frost is reported or likely.",
+    "sv": "Kollar Trafikverkets väglag för vägarna du bevakar just nu. Halt betyder att is, snö eller frost rapporteras eller är trolig."
+  },
   "args": [
     {
       "name": "device",

@@ -3,6 +3,10 @@
     "en": "Refresh now",
     "sv": "Uppdatera nu"
   },
+  "hint": {
+    "en": "Fetches new data for the device straight away. Usually not needed: devices update by themselves, more often during their active hours.",
+    "sv": "Hämtar ny data för enheten direkt. Behövs oftast inte: enheterna uppdateras av sig själva, oftare under sina aktiva timmar."
+  },
   "args": [
     {
       "name": "device",
