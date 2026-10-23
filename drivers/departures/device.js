@@ -17,6 +17,7 @@ class DepartureDevice extends Homey.Device {
     this.lastFetch = 0;
     this.fired = {};    // trip key -> { delay, canceled, leave, at }
     this.seeded = false; // first poll after start: don't fire for things that were already true
+    await this.syncFields(this.getSettings()).catch((e) => this.error('fields:', e.message));
     this.tick().catch((e) => this.error('first tick failed:', e.message));
     this.timer = this.homey.setInterval(() => this.tick().catch((e) => this.error('tick failed:', e.message)), TICK_MS);
   }
@@ -25,9 +26,23 @@ class DepartureDevice extends Homey.Device {
     if (this.timer) this.homey.clearInterval(this.timer);
   }
 
-  async onSettings() {
+  async onSettings({ newSettings }) {
+    await this.syncFields(newSettings).catch((e) => this.error('fields:', e.message));
     this.lastFetch = 0; // refetch + re-filter with the new settings on the next tick
     this.homey.setTimeout(() => this.tick().catch((e) => this.error(e.message)), 500);
+  }
+
+  /** Show or hide the optional fields ("Leave in" is pointless with no walking time). */
+  async syncFields(s) {
+    const want = {
+      dep_leave_in: s.show_leave_in !== false && (s.walk_minutes || 0) > 0,
+      dep_delay: s.show_delay !== false,
+      dep_upcoming: s.show_upcoming !== false,
+    };
+    for (const [cap, on] of Object.entries(want)) {
+      if (on && !this.hasCapability(cap)) await this.addCapability(cap);
+      if (!on && this.hasCapability(cap)) await this.removeCapability(cap);
+    }
   }
 
   get tz() { return this.homey.clock.getTimezone() || 'Europe/Stockholm'; }
@@ -141,6 +156,7 @@ class DepartureDevice extends Homey.Device {
   }
 
   async set(cap, value) {
+    if (!this.hasCapability(cap)) return; // hidden in the device settings
     if (this.getCapabilityValue(cap) !== value) await this.setCapabilityValue(cap, value).catch((e) => this.error(cap, e.message));
   }
 

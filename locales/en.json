@@ -62,7 +62,18 @@
     },
     "commutes": {
       "title": "2. Commutes",
-      "intro": "A commute shows door-to-door public transport options (with changes), the car route and the weather in the Commute dashboard widget.",
+      "intro": "A commute shows public transport door to door (with changes), the car route and the weather in the Commute widget on your dashboard. Going by car only? Choose \"Car only\" and enter two addresses.",
+      "travel": "How do you travel?",
+      "modeTransit": "Public transport (the car route can be shown too)",
+      "modeCar": "Car only, between two addresses",
+      "fromAddr": "From (address)",
+      "toAddr": "To (address)",
+      "homeAddr": "My home (the Homey's location)",
+      "homeName": "Home",
+      "needAddr": "Choose the From and To addresses first.",
+      "errFromAddr": "Choose a From address.",
+      "errToAddr": "Choose a To address.",
+      "testCarOk": "Works: {{n}} traffic message(s) on the roads right now.",
       "none": "No commutes yet.",
       "add": "Add a commute",
       "addFirst": "Add your API keys first: the commute setup searches stops with the Trafiklab key.",
@@ -235,7 +246,8 @@
   },
   "flow": {
     "noCommute": "That commute no longer exists. Pick another one in the Flow card.",
-    "leaveText": "Leave in {{n}} min: {{legs}}, there at {{arrive}}"
+    "leaveText": "Leave in {{n}} min: {{legs}}, there at {{arrive}}",
+    "leaveCarText": "Leave by car in {{n}} min, there at {{arrive}}"
   },
   "nearby": {
     "noLocation": "Your Homey has no location yet. Set it in the Homey app: More → Settings → Location."

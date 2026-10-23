@@ -23,7 +23,7 @@ const handlers = {
     return homey.app.searchCameras(query);
   },
   async geocode({ homey, query }) {
-    return homey.app.geocode(query.q);
+    return homey.app.geocode(query.q, query.home === '1');
   },
   async nearbyStops({ homey, query }) {
     return homey.app.nearbyStops(query);

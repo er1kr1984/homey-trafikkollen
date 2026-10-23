@@ -8,8 +8,8 @@
     "sv": "Kollektivtrafiken !{{hinner|hinner inte}} fram i tid för [[commute]]"
   },
   "hint": {
-    "en": "Compares the live trips with the commute's \"arrive by\" time. Handy for: if not, take the car.",
-    "sv": "Jämför resorna i realtid med pendlingens \"framme senast\"-tid. Praktiskt för: om inte, ta bilen."
+    "en": "Compares the live trips with the commute's \"arrive by\" time. Handy for: if not, take the car. For a car-only commute: whether leaving now still gets you there in time.",
+    "sv": "Jämför resorna i realtid med pendlingens \"framme senast\"-tid. Praktiskt för: om inte, ta bilen. För en pendling med bara bil: om du hinner fram i tid om du åker nu."
   },
   "args": [
     {

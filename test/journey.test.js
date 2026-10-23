@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const J = require('../lib/journey');
+const D = require('../lib/departures');
 const { nextWindow, parseConfigs } = require('../lib/commute');
 
 const T0 = Date.UTC(2026, 9, 13, 5, 0); // 07:00 Stockholm
@@ -76,4 +77,36 @@ test('commute: config validation', () => {
   assert.strictEqual(c.id, 'commute1');
   assert.strictEqual(c.destinations[0].walk, 8);
   assert.strictEqual(c.change_minutes, 3);
+});
+
+test('commute: car only between two addresses (no stops, no public transport calls)', async () => {
+  const { Commutes } = require('../lib/commute');
+  assert.throws(() => parseConfigs([{ mode: 'car', origin: { name: 'Hem' } }]), /origin needs lat\/lon/);
+  const [c] = parseConfigs([{
+    id: 'car', name: 'Till jobbet', mode: 'car', arrive_by: '08:00', active_hours: '06:00-09:00', weekdays_only: false, weather: true,
+    origin: { name: 'Storgatan 1, Uppsala', lat: 59.858, lon: 17.639 }, place: { name: 'Kungsgatan 2, Stockholm', lat: 59.335, lon: 18.064 },
+    drive: { minutes: 50, roads: 'E4' },
+  }]);
+  assert.strictEqual(c.mode, 'car');
+  assert.deepStrictEqual(c.destinations, []);
+  assert.ok(c.drive.enabled && Number.isFinite(c.drive.lat) && c.drive.radius_km > 30, 'route area worked out from the two addresses');
+  assert.strictEqual(c.weather.length, 2);
+
+  const TZ = 'Europe/Stockholm';
+  const now = D.localToEpoch('2026-10-13T06:45', TZ);
+  const realNow = Date.now; Date.now = () => now;
+  try {
+    const cm = new Commutes({ keys: () => ({}), tz: () => TZ });
+    cm.drive = async () => ({ minutes: 50, incidentCount: 1, updated: now });
+    cm.weather = async () => ({ places: [] });
+    cm.transit = async () => { throw new Error('car-only commute must not call public transport'); };
+    const r = await cm.get(c);
+    assert.strictEqual(r.transit, null);
+    assert.strictEqual(r.mode, 'car');
+    assert.strictEqual(r.plan.target.car, true);
+    assert.strictEqual(D.hhmm(r.plan.target.leave, TZ), '07:10'); // 08:00 minus 50 min
+    assert.strictEqual(r.plan.target.late, false);
+    const text = require('../lib/plan').briefing(r, r.plan.target, { lang: 'sv', tz: TZ });
+    assert.match(text, /Åk med bil 07:10, framme 08:00/);
+  } finally { Date.now = realNow; }
 });

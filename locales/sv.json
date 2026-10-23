@@ -62,7 +62,18 @@
     },
     "commutes": {
       "title": "2. Pendlingar",
-      "intro": "En pendling visar kollektivtrafik från dörr till dörr (med byten), bilvägen och vädret i widgeten Pendling på din instrumentpanel.",
+      "intro": "En pendling visar kollektivtrafik från dörr till dörr (med byten), bilvägen och vädret i widgeten Pendling på din instrumentpanel. Åker du bara bil? Välj \"Bara bil\" och ange två adresser.",
+      "travel": "Hur reser du?",
+      "modeTransit": "Kollektivtrafik (bilvägen kan också visas)",
+      "modeCar": "Bara bil, mellan två adresser",
+      "fromAddr": "Från (adress)",
+      "toAddr": "Till (adress)",
+      "homeAddr": "Mitt hem (Homeyns position)",
+      "homeName": "Hem",
+      "needAddr": "Välj Från- och Till-adress först.",
+      "errFromAddr": "Välj en Från-adress.",
+      "errToAddr": "Välj en Till-adress.",
+      "testCarOk": "Fungerar: {{n}} trafikmeddelande(n) på vägarna just nu.",
       "none": "Inga pendlingar ännu.",
       "add": "Lägg till en pendling",
       "addFirst": "Lägg in API-nycklarna först: hållplatssökningen använder Trafiklab-nyckeln.",
@@ -235,7 +246,8 @@
   },
   "flow": {
     "noCommute": "Den pendlingen finns inte längre. Välj en annan i flödeskortet.",
-    "leaveText": "Gå om {{n}} min: {{legs}}, framme {{arrive}}"
+    "leaveText": "Gå om {{n}} min: {{legs}}, framme {{arrive}}",
+    "leaveCarText": "Åk med bil om {{n}} min, framme {{arrive}}"
   },
   "nearby": {
     "noLocation": "Din Homey har ingen plats ännu. Ställ in den i Homey-appen: Mer → Inställningar → Plats."

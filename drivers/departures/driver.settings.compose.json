@@ -208,6 +208,54 @@
   {
     "type": "group",
     "label": {
+      "en": "Fields to show",
+      "sv": "Fält som visas"
+    },
+    "children": [
+      {
+        "id": "show_leave_in",
+        "type": "checkbox",
+        "value": true,
+        "label": {
+          "en": "Leave in",
+          "sv": "Gå om"
+        },
+        "hint": {
+          "en": "Minutes until you need to leave home (departure time minus the walking time). Hidden automatically when the walking time is 0, since it is then the same as 'Departs in'.",
+          "sv": "Minuter tills du behöver gå hemifrån (avgångstiden minus gångtiden). Döljs automatiskt när gångtiden är 0, eftersom det då är samma som 'Avgår om'."
+        }
+      },
+      {
+        "id": "show_delay",
+        "type": "checkbox",
+        "value": true,
+        "label": {
+          "en": "Delay",
+          "sv": "Försening"
+        },
+        "hint": {
+          "en": "How many minutes late the next departure is.",
+          "sv": "Hur många minuter sen nästa avgång är."
+        }
+      },
+      {
+        "id": "show_upcoming",
+        "type": "checkbox",
+        "value": true,
+        "label": {
+          "en": "Then",
+          "sv": "Sedan"
+        },
+        "hint": {
+          "en": "The departures after the next one.",
+          "sv": "Avgångarna efter nästa."
+        }
+      }
+    ]
+  },
+  {
+    "type": "group",
+    "label": {
       "en": "Updates",
       "sv": "Uppdateringar"
     },

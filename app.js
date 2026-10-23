@@ -152,7 +152,9 @@ class TrafikApp extends Homey.App {
         if (left <= remind && left >= -1 && !this.fired.has(key)) {
           this.fired.set(key, now);
           const legs = t.legs.map((l) => `${l.line} ${D.hhmm(l.dep.expected, tz)}`).join(' → ');
-          const text = this.t('flow.leaveText', { n: Math.max(0, left), legs, arrive: D.hhmm(t.arrive, tz) });
+          const text = t.car
+            ? this.t('flow.leaveCarText', { n: Math.max(0, left), arrive: D.hhmm(t.arrive, tz) })
+            : this.t('flow.leaveText', { n: Math.max(0, left), legs, arrive: D.hhmm(t.arrive, tz) });
           await this.leaveCard.trigger({ text, leave: D.hhmm(t.leave, tz), arrive: D.hhmm(t.arrive, tz), minutes: Math.max(0, left), late: !!t.late }, { id: cfg.id });
         }
       } catch (e) { this.error(`commute ${cfg.name}:`, e.message); }
@@ -221,7 +223,12 @@ class TrafikApp extends Homey.App {
   }
 
   /** Settings page: places for an address or name. */
-  async geocode(q) {
+  async geocode(q, home) {
+    if (home) {
+      const at = this.home();
+      if (!at) throw new Error('Your Homey has no location set (Homey settings > Location).');
+      return [{ name: this.homey.__('settings.commutes.homeName'), lat: +at.lat.toFixed(6), lon: +at.lon.toFixed(6) }];
+    }
     return geo.geocode(String(q || '').trim());
   }
 

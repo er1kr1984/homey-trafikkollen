@@ -8,8 +8,8 @@
     "sv": "Dags att gå för [[commute]]"
   },
   "hint": {
-    "en": "Fires a few minutes before you need to leave home to arrive on time. Needs an \"arrive by\" time in the commute (app settings). Uses live delays, and picks the latest trip that still gets you there in time.",
-    "sv": "Körs några minuter innan du behöver gå hemifrån för att komma fram i tid. Kräver en \"framme senast\"-tid i pendlingen (appinställningarna). Använder förseningar i realtid och väljer den senaste resan som ändå kommer fram i tid."
+    "en": "Fires a few minutes before you need to leave home to arrive on time. Needs an \"arrive by\" time in the commute (app settings). Uses live delays, and picks the latest trip that still gets you there in time. For a car-only commute it uses your normal driving time.",
+    "sv": "Körs några minuter innan du behöver gå hemifrån för att komma fram i tid. Kräver en \"framme senast\"-tid i pendlingen (appinställningarna). Använder förseningar i realtid och väljer den senaste resan som ändå kommer fram i tid. För en pendling med bara bil används din vanliga körtid."
   },
   "args": [
     {

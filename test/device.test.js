@@ -9,6 +9,8 @@ class FakeDevice {
   constructor(settings) { this._s = settings; this._caps = {}; this._avail = true; this.triggered = []; }
   getSettings() { return this._s; } getData() { return { id: '740000999' }; }
   getCapabilityValue(c) { return this._caps[c] ?? null; } async setCapabilityValue(c, v) { this._caps[c] = v; }
+  hasCapability(c) { return !(this._off || new Set()).has(c); }
+  async addCapability(c) { (this._off || new Set()).delete(c); } async removeCapability(c) { (this._off = this._off || new Set()).add(c); delete this._caps[c]; }
   getAvailable() { return this._avail; } async setAvailable() { this._avail = true; } async setUnavailable(m) { this._avail = false; this.why = m; }
   log() {} error(...a) { this.errors = (this.errors || []).concat(a.join(' ')); }
 }
@@ -115,4 +117,16 @@ test('operator messages fire "a departure has a message" once per message', asyn
   at('2026-10-12T07:23:00'); await dev.tick();
   assert.deepStrictEqual(dev.triggered.filter(([id]) => id === 'departure_disruption').map(([, t]) => t),
     ['07:42 Pendeltåg 1043 → Stockholm C: Ersättningsbussar ersätter tåg.']);
+});
+
+test('fields to show: hidden fields are removed, "leave in" goes when there is no walk', async () => {
+  const dev = make({}, () => []);
+  await dev.syncFields({ walk_minutes: 5, show_leave_in: true, show_delay: false, show_upcoming: true });
+  assert.deepStrictEqual([dev.hasCapability('dep_leave_in'), dev.hasCapability('dep_delay'), dev.hasCapability('dep_upcoming')], [true, false, true]);
+  await dev.syncFields({ walk_minutes: 0, show_leave_in: true, show_delay: true, show_upcoming: false });
+  assert.deepStrictEqual([dev.hasCapability('dep_leave_in'), dev.hasCapability('dep_delay'), dev.hasCapability('dep_upcoming')], [false, true, false]);
+  at('2026-10-12T07:00:00');
+  await dev.tick(); // must not try to write hidden fields
+  assert.strictEqual(dev.getCapabilityValue('dep_leave_in'), null);
+  assert.ok(!dev.errors, String(dev.errors));
 });

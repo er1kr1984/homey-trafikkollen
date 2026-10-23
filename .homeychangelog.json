@@ -1,4 +1,8 @@
 {
+  "1.1.0": {
+    "en": "Commutes by car only: choose \"Car only\" in the commute settings and enter two addresses (or use your home). The widget, the morning briefing, \"time to leave\" and the engine heater work from your driving time. Departure boards have a new \"Fields to show\" setting, so you can hide \"Leave in\", \"Delay\" or \"Then\". \"Leave in\" is hidden automatically when the walking time is 0.",
+    "sv": "Pendling med bara bil: välj \"Bara bil\" i pendlingsinställningarna och ange två adresser (eller ditt hem). Widgeten, morgonsammanfattningen, \"dags att gå\" och motorvärmaren utgår från din körtid. Avgångstavlor har en ny inställning, \"Fält som visas\", där du kan dölja \"Gå om\", \"Försening\" eller \"Sedan\". \"Gå om\" döljs automatiskt när gångtiden är 0."
+  },
   "1.0.1": {
     "en": "Traffic messages on the Commute widget and in commute alerts now show when Trafikverket reported them, and when they were last updated. Link to the Homey Community forum topic for questions and feedback. New preview pictures for the widgets.",
     "sv": "Trafikmeddelanden i widgeten Pendling och i pendlingslarmen visar nu när Trafikverket rapporterade dem och när de senast uppdaterades. Länk till tråden på Homey Community för frågor och synpunkter. Nya förhandsbilder för widgetarna."

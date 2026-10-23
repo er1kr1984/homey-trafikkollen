@@ -246,11 +246,14 @@
       const bestJ = byTime ? plan.target : (t && !t.error ? t.journeys.find((j) => !j.canceled && j.leave >= now) : null);
       const carAt = d && !d.error && d.minutes ? (byTime && plan.carLeave > now ? plan.arriveBy : now + d.minutes * MIN) : null;
       const ptBetter = bestJ && !bestJ.late && (!carAt || bestJ.arrive <= carAt + 10 * MIN);
+      const carOnly = data.mode === 'car';
       let html = '<div class="verdict">';
-      html += `<div class="opt ${bestJ && ptBetter ? 'best' : ''}"><div class="k">${esc(tr('publicTransport'))}</div>`
-        + (bestJ ? `<div class="v ${bestJ.late ? 'lateTxt' : ''}">${hm(bestJ.arrive)}</div><div class="s">${esc(tr('leave', { time: hm(bestJ.leave) }))} · ${bestJ.legs.map((l) => esc(l.line)).join(' + ')}${bestJ.late ? ` · ${esc(tr('lateWarn'))}` : ''}</div>`
-          : `<div class="v">–</div><div class="s">${esc(tr('noConnection'))}</div>`) + '</div>';
-      if (d && settings.show_drive !== false) {
+      if (!carOnly) {
+        html += `<div class="opt ${bestJ && ptBetter ? 'best' : ''}"><div class="k">${esc(tr('publicTransport'))}</div>`
+          + (bestJ ? `<div class="v ${bestJ.late ? 'lateTxt' : ''}">${hm(bestJ.arrive)}</div><div class="s">${esc(tr('leave', { time: hm(bestJ.leave) }))} · ${bestJ.legs.map((l) => esc(l.line)).join(' + ')}${bestJ.late ? ` · ${esc(tr('lateWarn'))}` : ''}</div>`
+            : `<div class="v">–</div><div class="s">${esc(tr('noConnection'))}</div>`) + '</div>';
+      }
+      if (d && (carOnly || settings.show_drive !== false)) {
         const warn = d.condition && d.condition.slippery ? ` · ${tr('slippery')}` : '';
         html += `<div class="opt ${carAt && !ptBetter ? 'best' : ''}"><div class="k">${esc(tr('car'))}</div>`
           + (carAt ? `<div class="v">${hm(carAt)}</div><div class="s">${esc((byTime && plan.carLeave > now ? tr('carLeave', { time: hm(plan.carLeave), n: d.minutes }) : tr('ifNow', { n: d.minutes })) + warn)}</div>` : `<div class="v">–</div><div class="s">${esc(tr('noData'))}</div>`) + '</div>';
@@ -262,7 +265,7 @@
       }
 
       if (t) html += `<h3>${esc(tr('publicTransport'))} <span>${esc(tr('from', { place: t.origin }))}${t.walkTo ? ` · ${esc(tr('walk', { n: t.walkTo }))}` : ''}</span></h3>${transitHtml(t, now)}`;
-      if (d && settings.show_drive !== false) html += `<h3>${esc(tr('car'))} <span>${esc(d.roads || '')}</span></h3>${driveHtml(d)}`;
+      if (d && (carOnly || settings.show_drive !== false)) html += `<h3>${esc(tr('car'))} <span>${esc(d.roads || '')}</span></h3>${driveHtml(d)}`;
       if (w && settings.show_weather !== false) {
         const day = w.start ? new Date(w.start).toLocaleDateString(tr('locale'), { weekday: 'long', timeZone: TZ }) : '';
         const day0 = (t) => new Date(t).toLocaleDateString('sv-SE', { timeZone: TZ });
@@ -271,7 +274,8 @@
       }
       document.getElementById('main').innerHTML = html;
 
-      const age = t && t.updated ? Math.round((now - t.updated) / MIN) : null;
+      const src = t && t.updated ? t : d;
+      const age = src && src.updated ? Math.round((now - src.updated) / MIN) : null;
       const stale = [t, d, w].some((x) => x && x.stale);
       document.getElementById('foot').textContent = `${stale ? '⚠ ' : ''}${age == null ? '' : `${tr('updated', { age: age < 1 ? tr('justNow') : tr('minAgo', { n: age }) })} · `}Trafiklab · Trafikverket · SMHI`;
       fit();
