@@ -30,7 +30,7 @@ function make(settings, feed) {
   dev.homey = {
     clock: { getTimezone: () => TZ },
     settings: { get: () => 'KEY' },
-    flow: { getDeviceTriggerCard: (id) => ({ trigger: async (d, tokens) => { d.triggered.push([id, tokens.text]); } }) },
+    flow: { getDeviceTriggerCard: (id) => ({ trigger: async (d, tokens, state) => { if (id === 'departure_in') (d.inTriggered = d.inTriggered || []).push(state.minutes); else d.triggered.push([id, tokens.text]); } }) },
     setInterval: () => 0, clearInterval: () => {}, setTimeout: () => 0,
     app: { friendly: (e) => App.prototype.friendly.call({ homey: { __: (k) => k } }, e), t: (k) => k },
   };
@@ -130,3 +130,34 @@ test('fields to show: hidden fields are removed, "leave in" goes when there is n
   assert.strictEqual(dev.getCapabilityValue('dep_leave_in'), null);
   assert.ok(!dev.errors, String(dev.errors));
 });
+
+test('no catchable departure: says whether there are none, or none you can reach in time', async () => {
+  at('2026-10-12T07:15:00');
+  const dev = make({ walk_minutes: 25 }, () => [dep('2026-10-12T07:30:00')]); // 15 min away, 25 min walk
+  await dev.tick();
+  assert.strictEqual(dev.getCapabilityValue('dep_next'), 'device.noneReachable');
+  const empty = make({ walk_minutes: 25 }, () => []);
+  await empty.tick();
+  assert.strictEqual(empty.getCapabilityValue('dep_next'), 'device.noneHour');
+});
+
+test('"a departure leaves in N minutes": every minute value once, none at start, not again after a delay', async () => {
+  let feed = [dep('2026-10-12T07:42:00')];
+  const dev = make({}, () => feed);
+  at('2026-10-12T07:30:00'); await dev.tick(); // seeding, 12 min away
+  assert.deepStrictEqual(dev.inTriggered || [], []);
+  at('2026-10-12T07:31:00'); await dev.tick(); // 11
+  at('2026-10-12T07:33:00'); await dev.tick(); // 9: 10 and 9 (a skipped tick still fires the minute in between)
+  assert.deepStrictEqual(dev.inTriggered, [11, 10, 9]);
+  feed = [dep('2026-10-12T07:42:00', { r: '2026-10-12T07:45:00', delay: 180 })]; dev.lastFetch = 0;
+  at('2026-10-12T07:34:00'); await dev.tick(); // now 11 away (delayed): nothing
+  at('2026-10-12T07:36:00'); await dev.tick(); // 9 again: 10 and 9 already fired
+  assert.deepStrictEqual(dev.inTriggered, [11, 10, 9]);
+  const n = dev.nextDeparture();
+  assert.strictEqual(n.found, true);
+  assert.strictEqual(n.minutes, 9);
+  assert.strictEqual(n.leave_in, 4);
+  assert.strictEqual(n.delay, 3);
+  assert.strictEqual(dev.nextMinutes(), 9);
+});
+

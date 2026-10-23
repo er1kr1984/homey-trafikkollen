@@ -1,0 +1,15 @@
+{
+  "name": {
+    "en": "Trafiklab usage",
+    "sv": "Trafiklab-användning"
+  },
+  "height": 300,
+  "transparent": false,
+  "settings": [],
+  "api": {
+    "getUsage": {
+      "method": "GET",
+      "path": "/usage"
+    }
+  }
+}

@@ -3,6 +3,10 @@
     "en": "A new road incident appears",
     "sv": "En ny trafikhändelse"
   },
+  "hint": {
+    "en": "Includes a picture from the traffic camera nearest the incident (within 5 km; otherwise the device's own camera). Use it with \"Send image with message\" to get the picture on your phone.",
+    "sv": "Innehåller en bild från trafikkameran närmast händelsen (inom 5 km, annars enhetens egen kamera). Använd den med \"Skicka bild med meddelande\" för att få bilden i telefonen."
+  },
   "args": [
     {
       "name": "device",
@@ -64,6 +68,32 @@
         "sv": "Allvarlighet (1-5)"
       },
       "example": 3
+    },
+    {
+      "name": "image",
+      "type": "image",
+      "title": {
+        "en": "Camera picture",
+        "sv": "Kamerabild"
+      }
+    },
+    {
+      "name": "camera",
+      "type": "string",
+      "title": {
+        "en": "Camera",
+        "sv": "Kamera"
+      },
+      "example": "Mora N"
+    },
+    {
+      "name": "camera_km",
+      "type": "number",
+      "title": {
+        "en": "Camera distance (km)",
+        "sv": "Kamerans avstånd (km)"
+      },
+      "example": 0.6
     }
   ]
 }

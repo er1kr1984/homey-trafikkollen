@@ -111,3 +111,13 @@ test('only specific departure times (the school bus)', () => {
   assert.deepStrictEqual(D.normalise(raw, TZ, { times: '7.40, 15:10' }).map((d) => D.hhmm(d.scheduled, TZ)), ['07:40', '15:10']);
   assert.strictEqual(D.normalise(raw, TZ, { times: '' }).length, 3);
 });
+
+test('commute day: weekdays except Swedish public holidays', () => {
+  const TZ = 'Europe/Stockholm';
+  assert.strictEqual(D.isCommuteDay('2026-10-23', TZ), true);   // Friday
+  assert.strictEqual(D.isCommuteDay('2026-10-24', TZ), false);  // Saturday
+  assert.strictEqual(D.isCommuteDay('2026-06-19', TZ), false);  // Midsommarafton (Friday)
+  assert.strictEqual(D.isCommuteDay('2026-12-24', TZ), false);  // Julafton (Thursday)
+  assert.strictEqual(D.isCommuteDay('2026-04-06', TZ), false);  // Annandag påsk
+});
+

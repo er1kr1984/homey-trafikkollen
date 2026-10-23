@@ -87,6 +87,17 @@ class FerryDevice extends Homey.Device {
     // time to leave: once per departure
     for (const d of live) {
       const f = this.fired[d.id] = this.fired[d.id] || { at: d.time };
+      // "a departure leaves in N minutes": each minute value once per departure
+      const inMin = Math.floor((d.time - now) / 60000);
+      f.inFired = f.inFired || [];
+      if (f.inMin !== undefined && inMin < f.inMin) {
+        for (let v = f.inMin - 1; v >= Math.max(0, inMin) && v >= f.inMin - 5; v--) {
+          if (f.inFired.includes(v)) continue;
+          f.inFired.push(v);
+          if (active && this.lastOk) await this.triggerIn({ ...this.flowTokens(d, now, walk), minutes: v });
+        }
+      }
+      f.inMin = inMin;
       const left = Math.floor((d.time - now) / 60000) - walk;
       if (!f.leave && left >= 0 && left <= (s.remind_before ?? 5)) {
         f.leave = true;
@@ -112,6 +123,36 @@ class FerryDevice extends Homey.Device {
         delayMin: 0, canceled: false, realtime: false, notes: i === 0 ? notes : [], next: d === next,
       })),
     };
+  }
+
+  flowTokens(d, now, walk) {
+    const minutes = Math.floor((d.time - now) / 60000);
+    return {
+      text: this.describe(d), line: this.route ? this.route.name : '', direction: d.to || '',
+      time: D.hhmm(d.time, this.tz), scheduled: D.hhmm(d.time, this.tz), minutes, leave_in: minutes - walk, delay: 0, platform: '',
+    };
+  }
+
+  /** "Get the next departure": the next one you can still reach. */
+  nextDeparture() {
+    const now = Date.now();
+    const walk = this.getSettings().walk_minutes || 0;
+    const next = this.deps.find((d) => d.time - walk * 60000 >= now);
+    if (!next) return { text: this.homey.__('ferry.none'), line: '', direction: '', time: '', scheduled: '', minutes: 0, leave_in: 0, delay: 0, platform: '', found: false };
+    return { ...this.flowTokens(next, now, walk), found: true };
+  }
+
+  nextMinutes() {
+    const now = Date.now();
+    const walk = this.getSettings().walk_minutes || 0;
+    const next = this.deps.find((d) => d.time - walk * 60000 >= now);
+    return next ? Math.floor((next.time - now) / 60000) : null;
+  }
+
+  async triggerIn(tokens) {
+    this.log('trigger departure_in', tokens.minutes, tokens.text);
+    await this.homey.flow.getDeviceTriggerCard('departure_in').trigger(this, tokens, { minutes: tokens.minutes })
+      .catch((e) => this.error('trigger departure_in:', e.message));
   }
 
   async trigger(id, tokens) {

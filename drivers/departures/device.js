@@ -94,7 +94,9 @@ class DepartureDevice extends Homey.Device {
     const next = D.nextCatchable(live, now, walk);
     const later = live.filter((d) => d !== next && (!next || d.expected > next.expected)).slice(0, 3);
 
-    await this.set('dep_next', next ? D.describe(next, tz) : 'No departures in the next hour');
+    // none in the feed, or only ones you can no longer reach on foot in time
+    const none = live.some((d) => !d.canceled) ? 'device.noneReachable' : 'device.noneHour';
+    await this.set('dep_next', next ? D.describe(next, tz) : this.homey.app.t(none));
     await this.set('dep_minutes', next ? D.timing(next, now, walk).minutes : null);
     await this.set('dep_leave_in', next ? D.timing(next, now, walk).leaveIn : null);
     await this.set('dep_delay', next ? Math.max(0, next.delayMin) : null);
@@ -107,6 +109,20 @@ class DepartureDevice extends Homey.Device {
       const f = this.fired[d.key] = this.fired[d.key] || { at: d.scheduled };
       const tokens = this.tokens(d, now, walk);
       const allow = active && this.seeded;
+
+      // "a departure leaves in N minutes": each minute value once per departure, also if a delay pushes it back
+      const inMin = Math.floor((d.expected - now) / 60000);
+      if (!d.canceled) {
+        f.inFired = f.inFired || [];
+        if (f.inMin !== undefined && inMin < f.inMin) {
+          for (let v = f.inMin - 1; v >= Math.max(0, inMin) && v >= f.inMin - 5; v--) {
+            if (f.inFired.includes(v)) continue;
+            f.inFired.push(v);
+            if (allow) await this.triggerIn({ ...this.flowTokens(d, now, walk), minutes: v });
+          }
+        }
+        f.inMin = inMin;
+      }
 
       for (const note of d.notes || []) {
         f.notes = f.notes || [];
@@ -148,6 +164,46 @@ class DepartureDevice extends Homey.Device {
       delay: Math.max(0, d.delayMin),
       platform: d.platform || '',
     };
+  }
+
+  /** Tokens for the "next departure" action and "leaves in" trigger. */
+  flowTokens(d, now, walk) {
+    const minutes = Math.floor((d.expected - now) / 60000);
+    return {
+      text: D.describe(d, this.tz),
+      line: d.line || d.lineName || '', // "141", not the operator's long route name: reads well in speech
+      direction: d.direction || '',
+      time: D.hhmm(d.expected, this.tz),
+      scheduled: D.hhmm(d.scheduled, this.tz),
+      minutes,
+      leave_in: minutes - walk,
+      delay: Math.max(0, d.delayMin || 0),
+      platform: d.platform || '',
+    };
+  }
+
+  /** "Get the next departure": the next one you can still reach. */
+  nextDeparture() {
+    const now = Date.now();
+    const walk = this.getSettings().walk_minutes || 0;
+    const next = D.nextCatchable(this.deps, now, walk);
+    if (!next) {
+      return { text: this.homey.app.t('device.noneHour'), line: '', direction: '', time: '', scheduled: '', minutes: 0, leave_in: 0, delay: 0, platform: '', found: false };
+    }
+    return { ...this.flowTokens(next, now, walk), found: true };
+  }
+
+  /** Minutes until the next departure you can still reach, or null. */
+  nextMinutes() {
+    const now = Date.now();
+    const next = D.nextCatchable(this.deps, now, this.getSettings().walk_minutes || 0);
+    return next ? Math.floor((next.expected - now) / 60000) : null;
+  }
+
+  async triggerIn(tokens) {
+    this.log('trigger departure_in', tokens.minutes, tokens.text);
+    await this.homey.flow.getDeviceTriggerCard('departure_in').trigger(this, tokens, { minutes: tokens.minutes })
+      .catch((e) => this.error('trigger departure_in:', e.message));
   }
 
   async trigger(id, tokens) {

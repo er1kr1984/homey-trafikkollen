@@ -1,0 +1,175 @@
+<!doctype html>
+<html>
+<head>
+  <style>
+    :root {
+      --tk-text: var(--homey-text-color, #1a1a1a);
+      --tk-muted: var(--homey-text-color-light, #8a8a8a);
+      --tk-line: var(--homey-line-color, rgba(128,128,128,.22));
+      --tk-soft: rgba(128,128,128,.10);
+      --tk-bad: #e5484d;
+      --tk-warn: #f5a524;
+      --tk-good: #30a46c;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 12px 14px 10px; color: var(--tk-text); font-family: var(--homey-font-family, -apple-system, system-ui, sans-serif); font-size: 14px; }
+    .head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .title { font-weight: 700; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .clock { font-size: 12px; color: var(--tk-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .main { display: grid; grid-template-columns: 112px 1fr; gap: 14px; align-items: center; margin-top: 10px; }
+    .ring { position: relative; width: 112px; height: 112px; }
+    .ring svg { width: 112px; height: 112px; transform: rotate(-90deg); }
+    .ring .bg { stroke: var(--tk-soft); }
+    .ring .fg { transition: stroke-dashoffset .6s ease, stroke .3s; }
+    .ring .in { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .ring .n { font-size: 34px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+    .ring .u { font-size: 11px; line-height: 1.15; color: var(--tk-muted); margin-top: 4px; max-width: 78px; }
+    .ring .go { font-size: 22px; font-weight: 800; line-height: 1.05; }
+    .now .ring .go { color: var(--tk-bad); }
+    .ok { --c: var(--tk-good); } .soon { --c: var(--tk-warn); } .hurry, .now { --c: var(--tk-bad); }
+    .ring .fg { stroke: var(--c, var(--tk-muted)); }
+    .now .ring { animation: pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 50% { transform: scale(1.04); } }
+    .what { min-width: 0; }
+    .what .lead { font-size: 13px; color: var(--tk-muted); }
+    .what .trip { font-size: 16px; font-weight: 700; margin: 2px 0; }
+    .what .sub { font-size: 13px; color: var(--tk-muted); }
+    .badge { display: inline-block; min-width: 28px; padding: 1px 5px; margin-right: 4px; border-radius: 5px; text-align: center; font-weight: 700; font-size: 12px; color: #fff; background: #3b82c4; vertical-align: 1px; }
+    .badge.TRAIN { background: #8b5cf6; } .badge.TRAM { background: #0e9f6e; } .badge.METRO { background: #e5484d; } .badge.BOAT, .badge.FERRY { background: #0891b2; }
+    .note { margin-top: 8px; font-size: 12.5px; padding: 6px 8px; border-radius: 8px; background: var(--tk-soft); }
+    .note.bad { background: rgba(229,72,77,.12); color: var(--tk-bad); font-weight: 600; }
+    .note.warn { background: rgba(245,165,36,.14); }
+    .then { margin-top: 10px; border-top: 1px solid var(--tk-line); }
+    .then .r { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; font-size: 13px; border-bottom: 1px solid var(--tk-line); }
+    .then .r:last-child { border-bottom: 0; }
+    .then .r b { font-variant-numeric: tabular-nums; }
+    .then .r span { color: var(--tk-muted); white-space: nowrap; }
+    .foot { margin-top: 8px; font-size: 11px; color: var(--tk-muted); }
+    .msg { padding: 18px 4px; color: var(--tk-muted); text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="head"><div class="title" id="title"></div><div class="clock" id="clock"></div></div>
+  <div id="main"><div class="msg">…</div></div>
+  <div class="foot" id="foot"></div>
+  <script type="text/javascript">
+    // English fallback in case translations are unavailable
+    const EN = {
+      title: 'Time to leave', pick: 'Pick a commute or departure board in the widget settings.',
+      min: 'min', toLeave: 'to go', goNow: 'Leave now!', hours: '{{h}} h {{m}} min',
+      leaveAt: 'Leave at {{time}}', departs: 'departs {{time}}', from: 'from {{place}}', walk: '{{n}} min walk',
+      late: 'Live data says {{n}} min late, but we still count on {{time}}: buses and trains can make up time.',
+      early: 'Leaving {{n}} min early according to live data.', noRealtime: 'No live data for this departure: timetable time.',
+      cancelled: '{{line}} at {{time}} is cancelled.', none: 'No departures found right now.',
+      stale: 'The times are {{n}} min old. Check the timetable if you are in a hurry.',
+      stop: 'Could not update for {{n}} min, so no countdown. Check the timetable yourself.',
+      then: 'Then', margin: 'Includes {{walk}} min walk + {{margin}} min margin', guide: 'A guide, not a guarantee: always keep an eye on the stop.',
+      updated: 'updated {{t}}', loading: 'Fetching departures…',
+    };
+    let H = null; let settings = {}; let data = null; let skew = 0; let ready = false;
+    const tr = (k, v = {}) => {
+      let s = H && typeof H.__ === 'function' ? H.__(`leave.${k}`) : null;
+      if (!s || s === `leave.${k}`) s = EN[k] || k;
+      return String(s).replace(/{{\s*(\w+)\s*}}/g, (_, n) => (v[n] != null ? v[n] : ''));
+    };
+    const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const hm = (t) => (t ? new Date(t).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Stockholm' }) : '–');
+    const MIN = 60000;
+    const GRACE = MIN;
+    const R = 50; const C = 2 * Math.PI * R;
+
+    // the trip to show at this moment: trips are re-checked locally between refreshes so a passed one is never shown
+    function current(now) {
+      const all = [data.next, ...(data.then || [])].filter(Boolean).filter((t) => t.leaveAt > now - GRACE);
+      return all.map((t) => {
+        const leaveIn = Math.floor((t.leaveAt - now) / MIN);
+        return { ...t, leaveIn, state: leaveIn <= 0 ? 'now' : leaveIn <= 3 ? 'hurry' : leaveIn <= 10 ? 'soon' : 'ok' };
+      });
+    }
+
+    function render() {
+      const now = Date.now() + skew;
+      document.getElementById('clock').textContent = hm(now);
+      if (!data) return;
+      document.getElementById('title').textContent = data.name || tr('title');
+      const main = document.getElementById('main');
+      const age = data.updated ? Math.floor((now - data.updated) / MIN) : null;
+      const trips = current(now);
+      const t = trips[0];
+      const notes = [];
+      for (const c of data.cancelled || []) notes.push(`<div class="note bad">⚠ ${esc(tr('cancelled', { line: c.line, time: hm(c.scheduled) }))}</div>`);
+      // too old: no countdown at all, only the times
+      const stop = data.stop || (age != null && age >= 15);
+      if (stop) notes.unshift(`<div class="note bad">${esc(tr('stop', { n: age ?? '?' }))}</div>`);
+      else if (data.stale || (age != null && age >= 5)) notes.unshift(`<div class="note warn">${esc(tr('stale', { n: age }))}</div>`);
+      if (!t) {
+        main.innerHTML = `<div class="msg">${esc(tr('none'))}</div>${notes.join('')}`;
+        fit(); return;
+      }
+      if (t.late) notes.push(`<div class="note warn">${esc(tr('late', { n: t.late, time: hm(t.departAt) }))}</div>`);
+      else if (t.early) notes.push(`<div class="note warn">${esc(tr('early', { n: t.early }))}</div>`);
+      else if (t.noRealtime) notes.push(`<div class="note">${esc(tr('noRealtime'))}</div>`);
+
+      const frac = Math.max(0, Math.min(1, t.leaveIn / 30)); // ring empties over the last 30 minutes
+      const big = stop ? `<div class="go">${hm(t.leaveAt)}</div>`
+        : t.state === 'now' ? `<div class="go">${esc(tr('goNow'))}</div>`
+          : t.leaveIn >= 100 ? `<div class="go">${esc(tr('hours', { h: Math.floor(t.leaveIn / 60), m: t.leaveIn % 60 }))}</div><div class="u">${esc(tr('toLeave'))}</div>`
+            : `<div class="n">${t.leaveIn}</div><div class="u">${esc(tr('min'))} ${esc(tr('toLeave'))}</div>`;
+      const line = String(t.line || '').split(' + ').map((l, i) => `<span class="badge ${i === 0 ? esc(t.mode) : ''}">${esc(l)}</span>`).join('');
+      let html = `<div class="main ${stop ? '' : t.state}">
+        <div class="ring"><svg viewBox="0 0 112 112"><circle class="bg" cx="56" cy="56" r="${R}" fill="none" stroke-width="10"/>
+          <circle class="fg" cx="56" cy="56" r="${R}" fill="none" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${stop ? C : t.state === 'now' ? 0 : C * (1 - frac)}"/></svg>
+          <div class="in">${big}</div></div>
+        <div class="what">
+          <div class="lead">${esc(tr('leaveAt', { time: hm(t.leaveAt) }))}</div>
+          <div class="trip">${line} ${esc(tr('departs', { time: hm(t.departAt) }))}</div>
+          <div class="sub">${t.direction ? `→ ${esc(t.direction)}` : ''}${data.from ? ` · ${esc(tr('from', { place: data.from }))}` : ''}${t.platform ? ` · ${esc(t.platform)}` : ''}</div>
+        </div></div>${notes.join('')}`;
+      if (settings.show_next !== false && trips.length > 1) {
+        html += `<div class="then">${trips.slice(1, 3).map((x) => `<div class="r"><b>${hm(x.leaveAt)}</b><span>${esc(x.line)} · ${esc(tr('departs', { time: hm(x.departAt) }))}</span></div>`).join('')}</div>`;
+      }
+      main.innerHTML = html;
+      document.getElementById('foot').textContent = `${tr('margin', { walk: data.walk || 0, margin: data.margin })} · ${tr('guide')}`;
+      fit();
+    }
+
+    function fit() {
+      const h = Math.ceil(document.body.scrollHeight) + 2;
+      if (!ready) { ready = true; H.ready({ height: h }); } else H.setHeight(h);
+    }
+
+    async function load() {
+      if (!settings.source || !settings.source.id) {
+        document.getElementById('title').textContent = tr('title');
+        document.getElementById('main').innerHTML = `<div class="msg">${esc(tr('pick'))}</div>`;
+        fit(); return;
+      }
+      try {
+        const margin = Number.isFinite(+settings.margin) ? +settings.margin : 2;
+        const r = await H.api('GET', `/leave?source=${encodeURIComponent(settings.source.id)}&margin=${margin}`);
+        if (r.loading) { // first fetch after a restart is still running: ask again shortly
+          if (!data) { document.getElementById('title').textContent = r.name || tr('title'); document.getElementById('main').innerHTML = `<div class="msg">${esc(tr('loading'))}</div>`; fit(); }
+          setTimeout(load, 5000);
+          return;
+        }
+        data = r;
+        skew = data.now - Date.now();
+        render();
+      } catch (e) {
+        // keep showing the last good data (it turns into a warning as it ages) unless there is none
+        if (data) { render(); return; }
+        document.getElementById('main').innerHTML = `<div class="msg">${esc(e.message || e)}</div>`;
+        fit();
+      }
+    }
+
+    function onHomeyReady(Homey) {
+      H = Homey;
+      settings = Homey.getSettings() || {};
+      load();
+      setInterval(load, 30000);
+      setInterval(render, 5000);
+    }
+  </script>
+</body>
+</html>

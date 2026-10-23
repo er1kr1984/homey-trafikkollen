@@ -1,0 +1,57 @@
+{
+  "name": {
+    "en": "Traffic cameras",
+    "sv": "Trafikkameror"
+  },
+  "height": 360,
+  "transparent": false,
+  "settings": [
+    {
+      "id": "camera1",
+      "type": "autocomplete",
+      "title": {
+        "en": "Camera 1",
+        "sv": "Kamera 1"
+      }
+    },
+    {
+      "id": "camera2",
+      "type": "autocomplete",
+      "title": {
+        "en": "Camera 2",
+        "sv": "Kamera 2"
+      }
+    },
+    {
+      "id": "camera3",
+      "type": "autocomplete",
+      "title": {
+        "en": "Camera 3",
+        "sv": "Kamera 3"
+      }
+    },
+    {
+      "id": "camera4",
+      "type": "autocomplete",
+      "title": {
+        "en": "Camera 4",
+        "sv": "Kamera 4"
+      }
+    },
+    {
+      "id": "show_incidents",
+      "type": "checkbox",
+      "title": {
+        "en": "Mark cameras with traffic messages nearby",
+        "sv": "Markera kameror med trafikmeddelanden i närheten"
+      },
+      "value": true
+    }
+  ],
+  "api": {
+    "getCameras": {
+      "method": "GET",
+      "path": "/cameras"
+    }
+  }
+}

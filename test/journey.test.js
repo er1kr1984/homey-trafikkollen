@@ -110,3 +110,21 @@ test('commute: car only between two addresses (no stops, no public transport cal
     assert.match(text, /Åk med bil 07:10, framme 08:00/);
   } finally { Date.now = realNow; }
 });
+
+test('commute cache: widgets get the old value at once while a fresh one is fetched (stale-while-revalidate)', async () => {
+  const { Commutes } = require('../lib/commute');
+  const cm = new Commutes({ keys: () => ({}), tz: () => 'Europe/Stockholm' });
+  let n = 0;
+  let release;
+  const slow = () => new Promise((ok) => { n += 1; release = () => ok({ v: n, updated: Date.now() }); });
+  const first = cm.cached('x', 1000, slow);
+  release();
+  assert.strictEqual((await first).v, 1);
+  cm.cache.get('x').at -= 5000; // expire it
+  const quick = await cm.cached('x', 1000, slow, true); // swr: old value, no waiting
+  assert.strictEqual(quick.v, 1);
+  assert.strictEqual(n, 2, 'a refresh was started');
+  release();
+  await cm.cache.get('x').promise;
+  assert.strictEqual((await cm.cached('x', 1000, slow, true)).v, 2);
+});

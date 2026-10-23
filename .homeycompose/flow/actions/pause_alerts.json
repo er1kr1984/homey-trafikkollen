@@ -1,0 +1,73 @@
+{
+  "title": {
+    "en": "Pause commute alerts",
+    "sv": "Pausa pendlingslarm"
+  },
+  "titleFormatted": {
+    "en": "Pause alerts for [[commute]] [[period]]",
+    "sv": "Pausa larm för [[commute]] [[period]]"
+  },
+  "hint": {
+    "en": "Silences \"Time to leave\", \"Engine heater\", problem and \"I will be late\" for a while, e.g. when you work from home or are on holiday. The widgets keep working. Pick \"All commutes\" to pause them all.",
+    "sv": "Tystar \"Dags att gå\", \"Motorvärmare\", problem och \"Jag blir sen\" ett tag, t.ex. när du jobbar hemifrån eller har semester. Widgetarna fortsätter att fungera. Välj \"Alla pendlingar\" för att pausa alla."
+  },
+  "args": [
+    {
+      "name": "commute",
+      "type": "autocomplete",
+      "title": {
+        "en": "Commute",
+        "sv": "Pendling"
+      },
+      "placeholder": {
+        "en": "Pick a commute",
+        "sv": "Välj en pendling"
+      }
+    },
+    {
+      "name": "period",
+      "type": "dropdown",
+      "title": {
+        "en": "For how long",
+        "sv": "Hur länge"
+      },
+      "values": [
+        {
+          "id": "0",
+          "label": {
+            "en": "for the rest of today",
+            "sv": "resten av dagen"
+          }
+        },
+        {
+          "id": "1",
+          "label": {
+            "en": "until tomorrow evening",
+            "sv": "till i morgon kväll"
+          }
+        },
+        {
+          "id": "2",
+          "label": {
+            "en": "for 3 days",
+            "sv": "i 3 dagar"
+          }
+        },
+        {
+          "id": "6",
+          "label": {
+            "en": "for a week",
+            "sv": "i en vecka"
+          }
+        },
+        {
+          "id": "13",
+          "label": {
+            "en": "for two weeks",
+            "sv": "i två veckor"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "title": {
+    "en": "A commute problem is resolved",
+    "sv": "Ett pendlingsproblem är löst"
+  },
+  "titleFormatted": {
+    "en": "A problem on [[commute]] is resolved",
+    "sv": "Ett problem på [[commute]] är löst"
+  },
+  "hint": {
+    "en": "Runs when \"There is a problem on a commute\" has warned today and there have been no problems for a few minutes. Good for an all-clear message.",
+    "sv": "Körs när \"Det är problem på en pendling\" har varnat i dag och det inte har varit några problem på några minuter. Bra för ett \"allt klart\"-meddelande."
+  },
+  "args": [
+    {
+      "name": "commute",
+      "type": "autocomplete",
+      "title": {
+        "en": "Commute",
+        "sv": "Pendling"
+      },
+      "placeholder": {
+        "en": "Pick a commute",
+        "sv": "Välj en pendling"
+      }
+    }
+  ],
+  "tokens": [
+    {
+      "name": "text",
+      "type": "string",
+      "title": {
+        "en": "Message",
+        "sv": "Meddelande"
+      },
+      "example": {
+        "en": "Home → Work: no problems any more.",
+        "sv": "Hem → Jobbet: inga problem längre."
+      }
+    }
+  ]
+}

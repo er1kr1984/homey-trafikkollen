@@ -1,0 +1,35 @@
+{
+  "name": {
+    "en": "Road ferry",
+    "sv": "Vägfärja"
+  },
+  "height": 320,
+  "transparent": false,
+  "settings": [
+    {
+      "id": "route",
+      "type": "autocomplete",
+      "title": {
+        "en": "Ferry route",
+        "sv": "Färjeled"
+      }
+    },
+    {
+      "id": "rows",
+      "type": "number",
+      "title": {
+        "en": "Departures per direction",
+        "sv": "Avgångar per riktning"
+      },
+      "value": 3,
+      "min": 1,
+      "max": 6
+    }
+  ],
+  "api": {
+    "getFerry": {
+      "method": "GET",
+      "path": "/ferry"
+    }
+  }
+}

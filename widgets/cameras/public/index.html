@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+<head>
+  <style>
+    :root {
+      --tk-text: var(--homey-text-color, #1a1a1a);
+      --tk-muted: var(--homey-text-color-light, #8a8a8a);
+      --tk-soft: rgba(128,128,128,.12);
+      --tk-bad: #e5484d;
+      --tk-warn: #f5a524;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 10px; color: var(--tk-text); font-family: var(--homey-font-family, -apple-system, system-ui, sans-serif); font-size: 13px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid.one { grid-template-columns: 1fr; }
+    .cam { position: relative; border-radius: 10px; overflow: hidden; background: var(--tk-soft); cursor: pointer; aspect-ratio: 16 / 9; }
+    .cam.big { grid-column: 1 / -1; }
+    .cam img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .cam.big img { object-fit: contain; background: #000; }
+    .cam .name { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 8px 5px; font-size: 12px; font-weight: 600; color: #fff;
+      background: linear-gradient(transparent, rgba(0,0,0,.65)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cam.inc { box-shadow: inset 0 0 0 3px var(--tk-warn); }
+    .cam.acc { box-shadow: inset 0 0 0 3px var(--tk-bad); }
+    .cam .tag { position: absolute; top: 6px; left: 6px; right: 6px; padding: 3px 7px; border-radius: 6px; font-size: 11.5px; font-weight: 700; color: #fff;
+      background: var(--tk-warn); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cam.acc .tag { background: var(--tk-bad); }
+    .cam.big .tag { white-space: normal; }
+    .cam .x { position: absolute; top: 6px; right: 8px; color: #fff; font-size: 14px; text-shadow: 0 0 4px #000; }
+    .cam .missing { display: flex; height: 100%; align-items: center; justify-content: center; text-align: center; padding: 8px; color: var(--tk-muted); }
+    .foot { margin-top: 6px; font-size: 11px; color: var(--tk-muted); }
+    .msg { padding: 18px 4px; color: var(--tk-muted); text-align: center; }
+  </style>
+</head>
+<body>
+  <div id="main"><div class="msg">…</div></div>
+  <div class="foot" id="foot"></div>
+  <script type="text/javascript">
+    const EN = {
+      pick: 'Pick up to four cameras in the widget settings (type part of a name, e.g. "E4" or a town).',
+      missing: 'Camera "{{name}}" was not found. Pick it again in the widget settings.',
+      tapHint: 'Tap a picture to make it bigger', source: 'Pictures: Trafikverket · updated {{time}}',
+    };
+    let H = null; let settings = {}; let data = null; let ready = false;
+    const big = new Set();
+    let stamp = Date.now();
+    const tr = (k, v = {}) => {
+      let s = H && typeof H.__ === 'function' ? H.__(`cameras.${k}`) : null;
+      if (!s || s === `cameras.${k}`) s = EN[k] || k;
+      return String(s).replace(/{{\s*(\w+)\s*}}/g, (_, n) => (v[n] != null ? v[n] : ''));
+    };
+    const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const hm = (t) => new Date(t).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Stockholm' });
+    const names = () => [1, 2, 3, 4].map((n) => settings[`camera${n}`]).filter((c) => c && (c.id || c.name)).map((c) => c.id || c.name);
+
+    function render() {
+      const main = document.getElementById('main');
+      if (!data) return;
+      const cams = data.cameras || [];
+      if (!cams.length) { main.innerHTML = `<div class="msg">${esc(tr('pick'))}</div>`; fit(); return; }
+      main.innerHTML = `<div class="grid ${cams.length === 1 ? 'one' : ''}">${cams.map((c, i) => {
+        if (c.missing || c.error || !c.url) return `<div class="cam"><div class="missing">${esc(c.error || tr('missing', { name: c.name }))}</div></div>`;
+        const inc = settings.show_incidents !== false && c.incident;
+        const cls = ['cam', big.has(i) ? 'big' : '', inc ? (c.incident.accident ? 'acc' : 'inc') : ''].join(' ');
+        const url = `${c.url}${c.url.includes('?') ? '&' : '?'}type=fullsize&t=${stamp}`;
+        const tag = inc ? `<div class="tag">${c.incident.accident ? '⚠ ' : ''}${esc(c.incident.type)}${c.incident.road ? ` · ${esc(c.incident.road)}` : ''}${big.has(i) && c.incident.message ? `: ${esc(c.incident.message)}` : ''}</div>` : '';
+        return `<div class="${cls}" data-i="${i}"><img src="${esc(url)}" alt="">${tag}<div class="name">${esc(c.name)}</div>${big.has(i) ? '<div class="x">✕</div>' : ''}</div>`;
+      }).join('')}</div>`;
+      document.getElementById('foot').textContent = `${tr('source', { time: hm(stamp) })} · ${tr('tapHint')}`;
+      fit();
+    }
+
+    function fit() {
+      const h = Math.ceil(document.body.scrollHeight) + 2;
+      if (!ready) { ready = true; H.ready({ height: h }); } else H.setHeight(h);
+    }
+
+    async function load() {
+      const list = names();
+      if (!list.length) { data = { cameras: [] }; render(); return; }
+      try {
+        data = await H.api('GET', `/cameras?names=${encodeURIComponent(list.join('|'))}&incidents=${settings.show_incidents === false ? 0 : 1}`);
+        stamp = Date.now();
+        render();
+      } catch (e) {
+        if (data) return;
+        document.getElementById('main').innerHTML = `<div class="msg">${esc(e.message || e)}</div>`;
+        fit();
+      }
+    }
+
+    function onHomeyReady(Homey) {
+      H = Homey;
+      settings = Homey.getSettings() || {};
+      load();
+      setInterval(load, 5 * 60000); // Trafikverket updates the pictures every few minutes
+      document.addEventListener('load', (e) => { if (e.target.tagName === 'IMG') fit(); }, true);
+      document.getElementById('main').addEventListener('click', (e) => {
+        const cam = e.target.closest('[data-i]');
+        if (!cam) return;
+        const i = +cam.dataset.i;
+        if (big.has(i)) big.delete(i); else big.add(i);
+        render();
+      });
+    }
+  </script>
+</body>
+</html>

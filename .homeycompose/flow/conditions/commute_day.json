@@ -1,0 +1,36 @@
+{
+  "title": {
+    "en": "... !{{is|is not}} a commute day",
+    "sv": "... !{{är|är inte}} en pendlingsdag"
+  },
+  "titleFormatted": {
+    "en": "[[when]] !{{is|is not}} a commute day",
+    "sv": "[[when]] !{{är|är inte}} en pendlingsdag"
+  },
+  "hint": {
+    "en": "A commute day is a weekday (Monday to Friday) that is not a Swedish public holiday, such as Midsummer Eve or Christmas Eve. Handy for alarms, heating and lights too.",
+    "sv": "En pendlingsdag är en vardag (måndag till fredag) som inte är en svensk helgdag, som midsommarafton eller julafton. Praktiskt även för väckning, värme och belysning."
+  },
+  "args": [
+    {
+      "name": "when",
+      "type": "dropdown",
+      "values": [
+        {
+          "id": "today",
+          "label": {
+            "en": "Today",
+            "sv": "I dag"
+          }
+        },
+        {
+          "id": "tomorrow",
+          "label": {
+            "en": "Tomorrow",
+            "sv": "I morgon"
+          }
+        }
+      ]
+    }
+  ]
+}

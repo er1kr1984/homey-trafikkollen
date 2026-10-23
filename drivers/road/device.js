@@ -7,7 +7,15 @@ const D = require('../../lib/departures');
 
 const IDLE_POLL_MIN = 15;
 const CAMERA_REFRESH_MIN = 5;
+const SNAP_KM = 5;           // nearest camera to an incident must be this close
+const SNAP_KEEP = 5;         // incident pictures kept for Flows
 const SLIPPERY_WORDS = /halk|is- och snö|snö|ising|frost/i;
+
+/** "E4 vid Trafikplats Häggvik båda riktningarna i Stockholms län (AB)" -> "Häggvik" (short enough to say out loud). */
+function placeName(location) {
+  const m = /(?:vid|mellan|från)\s+(?:trafikplats(?:erna)?\s+)?(.+?)(?:\s*\(\d+\))?(?:\s+(?:båda riktningarna|i riktning|i [A-ZÅÄÖ]|till|och)\b|,|$)/i.exec(String(location || ''));
+  return m ? m[1].trim() : '';
+}
 
 class RoadDevice extends Homey.Device {
 
@@ -24,6 +32,78 @@ class RoadDevice extends Homey.Device {
 
   onDeleted() {
     if (this.timer) this.homey.clearInterval(this.timer);
+    for (const x of this.snaps || []) x.image.unregister().catch(() => {});
+  }
+
+  /** Tokens for "a new road incident appears", with a picture from the nearest camera. */
+  async incidentTokens(i, prefix = '') {
+    const snap = await this.snapshot(i.point).catch((e) => { this.error('incident snapshot:', e.message); return null; });
+    return {
+      text: `${prefix}${i.type}${i.road ? ` on ${i.road}` : ''}${i.location ? ` (${i.location})` : ''}: ${i.message}`.trim(),
+      type: `${prefix}${i.type}`, road: i.road, location: i.location, message: i.message, severity: i.severity || 0,
+      image: snap ? snap.image : (this.image || null),
+      camera: snap ? snap.camera.name : (this.camera ? this.camera.name : ''),
+      camera_km: snap && snap.camera.km != null ? +snap.camera.km.toFixed(1) : 0,
+    };
+  }
+
+  /** Flow action "Get the road status": a short spoken/notification summary of the watched roads. */
+  async roadStatus() {
+    if (!this.known) await this.refresh();
+    const list = [...(this.known || new Map()).values()];
+    const rank = (t) => (/olycka|accident/i.test(t) ? 0 : /vägarbete/i.test(t) ? 2 : 1);
+    const top = [...list].sort((a, b) => rank(a.type) - rank(b.type) || (b.severity || 0) - (a.severity || 0)).slice(0, 2);
+    const s = this.getSettings();
+    const roads = String(s.roads || '').split(',').map((x) => x.trim()).filter(Boolean).join(', ') || this.homey.app.t('road.allRoads');
+    const condition = this.getCapabilityValue('road_condition') || '–';
+    const slippery = this.getCapabilityValue('alarm_road_slippery') === true;
+    const what = top.map((i) => {
+      const place = placeName(i.location);
+      return this.homey.app.t(place ? 'road.item' : 'road.itemNoPlace', { type: String(i.type || '').toLowerCase(), road: i.road || '', place });
+    }).join('; ');
+    const text = list.length
+      ? this.homey.app.t('road.status', { n: list.length, roads, what, cond: condition })
+      : this.homey.app.t('road.statusNone', { roads, cond: condition });
+    return {
+      text: `${text}${slippery ? ` ${this.homey.app.t('road.slipperyNow')}` : ''}`,
+      count: list.length,
+      accident: list.some((i) => /olycka|accident/i.test(i.type || '')),
+      slippery,
+      condition,
+    };
+  }
+
+  /** Flow action: fire "a new road incident appears" with the most serious current incident, to test notifications. */
+  async testIncident() {
+    if (!this.known) await this.refresh();
+    const rank = (t) => (/olycka|accident/i.test(t) ? 0 : /vägarbete/i.test(t) ? 2 : 1);
+    const pick = [...(this.known || new Map()).values()]
+      .sort((a, b) => rank(a.type) - rank(b.type) || (b.severity || 0) - (a.severity || 0))[0];
+    if (!pick) throw new Error(this.homey.app.t('road.noTestIncident'));
+    await this.trigger('road_incident_new', await this.incidentTokens(pick, 'TEST: '));
+  }
+
+  /**
+   * A still from the camera nearest an incident (within SNAP_KM), taken now so it shows the moment it was reported.
+   * Returns { image, camera } or null. The last few pictures are kept for Flows that use them a bit later.
+   */
+  async snapshot(point) {
+    if (!point) return null;
+    const key = this.homey.settings.get('trafikverket_key');
+    const cam = (await tv.cameras(key, point.lon, point.lat, SNAP_KM))[0];
+    if (!cam) return null;
+    const url = cam.photoUrl + (cam.photoUrl.includes('?') ? '&' : '?') + 'type=fullsize';
+    tv.note('image');
+    const res = await http.request(url, { timeout: 20000 });
+    if (!res.ok) { res.stream.resume(); throw new Error(`Camera HTTP ${res.status}`); }
+    const chunks = [];
+    for await (const c of res.stream) chunks.push(c);
+    const jpeg = Buffer.concat(chunks);
+    const image = await this.homey.images.createImage();
+    image.setStream(async (stream) => { stream.end(jpeg); });
+    this.snaps = (this.snaps || []).concat({ image, at: Date.now() });
+    while (this.snaps.length > SNAP_KEEP) await this.snaps.shift().image.unregister().catch(() => {});
+    return { image, camera: cam };
   }
 
   async onSettings({ newSettings, changedKeys }) {
@@ -86,10 +166,7 @@ class RoadDevice extends Homey.Device {
     if (this.known) {
       for (const [id, i] of byId) {
         if (!this.known.has(id) && active) {
-          await this.trigger('road_incident_new', {
-            text: `${i.type}${i.road ? ` on ${i.road}` : ''}${i.location ? ` (${i.location})` : ''}: ${i.message}`.trim(),
-            type: i.type, road: i.road, location: i.location, message: i.message, severity: i.severity || 0,
-          });
+          await this.trigger('road_incident_new', await this.incidentTokens(i));
         }
       }
       for (const [id, i] of this.known) {
@@ -134,6 +211,7 @@ class RoadDevice extends Homey.Device {
     this.image.setStream(async (stream) => {
       if (!this.camera) throw new Error('No camera');
       const url = this.camera.photoUrl + (this.camera.photoUrl.includes('?') ? '&' : '?') + 'type=fullsize';
+      tv.note('image');
       const res = await http.request(url, { timeout: 20000 });
       if (!res.ok) { res.stream.resume(); throw new Error(`Camera HTTP ${res.status}`); }
       res.stream.pipe(stream);
@@ -161,7 +239,7 @@ class RoadDevice extends Homey.Device {
 
   /** Show the camera in use and other matches in the (read-only) settings lines. */
   async reportCamera(others) {
-    const fmt = (c) => (c.km != null ? `${c.name} (${c.km} km)` : c.name);
+    const fmt = (c) => (c.km != null ? `${c.name} (${Number(c.km).toFixed(1)} km)` : c.name);
     const inUse = this.camera ? fmt(this.camera) : '–';
     const more = others.length ? others.map(fmt).join(', ') : '–';
     const s = this.getSettings();

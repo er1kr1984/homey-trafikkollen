@@ -100,7 +100,7 @@
 
   <script type="text/javascript">
     // English fallback in case translations are unavailable
-    const EN = {"locale": "en-GB", "loading": "Loading…", "publicTransport": "Public transport", "car": "Car", "weather": "Weather", "from": "from {{place}}", "walk": "{{n}} min walk", "leave": "leave {{time}}", "noConnection": "no connection found", "noData": "no data", "ifNow": "if you leave now · ~{{n}} min", "slippery": "slippery!", "inMin": "in {{n}} min", "later": "later", "leaveNow": "leave now", "missed": "missed", "cancelled": "cancelled", "Cancelled": "Cancelled", "atWork": "arrive", "changeAt": "{{n}} min change at {{stop}}", "noConnections": "No connections found in the next two hours", "road": "Road", "messages": "{{n}} message(s) on {{roads}}", "until": "until {{date}}", "thisMorning": "today", "frozen": "❄️ Snow or sleet during the commute: allow extra time", "cold": "🧊 Near freezing: frost on the car, and roads may be slippery", "rain": "☔ Rain during the commute", "updated": "updated {{age}}", "justNow": "just now", "minAgo": "{{n}} min ago", "showAll": "Show all {{n}} messages", "showFewer": "Show fewer", "lanes": "{{n}} lane(s) closed", "tapHint": "Tap a message to read it", "track": "track {{n}}", "lateWarn": "late!", "carLeave": "leave by {{time}} · ~{{n}} min", "arriveBy": "Planned to arrive by {{time}}", "heater": "🔌 Engine heater from {{time}} ({{n}} min, {{temp}}° when you leave)", "surface": "Road surface {{temp}}° ({{place}})", "reportedAt": "reported {{time}}", "changedAt": "updated {{time}}"};
+    const EN = {"locale": "en-GB", "loading": "Loading…", "publicTransport": "Public transport", "car": "Car", "weather": "Weather", "from": "from {{place}}", "walk": "{{n}} min walk", "leave": "leave {{time}}", "noConnection": "no connection found", "noData": "no data", "ifNow": "if you leave now · ~{{n}} min", "slippery": "slippery!", "inMin": "in {{n}} min", "later": "later", "leaveNow": "leave now", "missed": "missed", "cancelled": "cancelled", "Cancelled": "Cancelled", "atWork": "arrive", "changeAt": "{{n}} min change at {{stop}}", "noConnections": "No trips found in the next 4 hours", "inHours": "in {{h}} h {{m}} min", "nextCommute": "Next commute", "nextLeave": "next trip {{day}} {{time}}", "road": "Road", "messages": "{{n}} message(s) on {{roads}}", "until": "until {{date}}", "thisMorning": "today", "frozen": "❄️ Snow or sleet during the commute: allow extra time", "cold": "🧊 Near freezing: frost on the car, and roads may be slippery", "rain": "☔ Rain during the commute", "updated": "updated {{age}}", "justNow": "just now", "minAgo": "{{n}} min ago", "showAll": "Show all {{n}} messages", "showFewer": "Show fewer", "lanes": "{{n}} lane(s) closed", "tapHint": "Tap a message to read it", "track": "track {{n}}", "lateWarn": "late!", "carLeave": "leave by {{time}} · ~{{n}} min", "arriveBy": "Planned to arrive by {{time}}", "heater": "🔌 Engine heater from {{time}} ({{n}} min, {{temp}}° when you leave)", "surface": "Road surface {{temp}}° ({{place}})", "reportedAt": "reported {{time}}", "changedAt": "updated {{time}}", "fetching": "Fetching departures…"};
     const tr = (k, v = {}) => {
       let s = H && typeof H.__ === 'function' ? H.__(`widget.${k}`) : null;
       if (!s || s === `widget.${k}`) s = String(EN[k] || k).replace(/{{(\w+)}}/g, (_, n) => v[n] ?? '');
@@ -136,7 +136,8 @@
       return rows.map((j, i) => {
         const leaveIn = Math.floor((j.leave - now) / MIN);
         const cls = leaveIn < 0 ? 'gone' : leaveIn <= 2 ? 'now' : leaveIn <= 7 ? 'soon' : '';
-        const leaveTxt = tr(j.canceled ? 'cancelled' : leaveIn < 0 ? 'missed' : leaveIn === 0 ? 'leaveNow' : leaveIn > 99 ? 'later' : 'inMin', { n: leaveIn });
+        const leaveTxt = leaveIn >= 60 && !j.canceled ? tr('inHours', { h: Math.floor(leaveIn / 60), m: leaveIn % 60 })
+          : tr(j.canceled ? 'cancelled' : leaveIn < 0 ? 'missed' : leaveIn === 0 ? 'leaveNow' : 'inMin', { n: leaveIn });
         const legs = j.legs.map(legHtml);
         if (j.legs.length > 1 && j.slack !== null) {
           const change = Math.round((j.legs[1].dep.expected - j.legs[0].arr.expected) / MIN);
@@ -151,6 +152,16 @@
         </div>`;
       }).join('');
     }
+
+    // outside commute hours: the first trips of the next commute window
+    function nextHtml(n) {
+      return n.journeys.map((j) => `<div class="j">
+          <div class="leave"><b>${hm(j.leave)}</b><small>${esc(dayName(j.leave))}</small></div>
+          <div class="legs">${j.legs.map(legHtml).join('')}</div>
+          <div class="at"><b>${hm(j.arrive)}</b><small>${esc(tr('atWork'))}</small></div>
+        </div>`).join('');
+    }
+    const dayName = (t) => new Date(t).toLocaleDateString(tr('locale'), { weekday: 'short', timeZone: TZ });
 
     function driveHtml(d) {
       if (d.error) return `<div class="msg">${esc(d.error)}</div>`;
@@ -247,11 +258,14 @@
       const carAt = d && !d.error && d.minutes ? (byTime && plan.carLeave > now ? plan.arriveBy : now + d.minutes * MIN) : null;
       const ptBetter = bestJ && !bestJ.late && (!carAt || bestJ.arrive <= carAt + 10 * MIN);
       const carOnly = data.mode === 'car';
+      const nx = data.next && !data.next.error ? data.next : null;
+      const nextJ = !bestJ && nx && nx.journeys.length ? nx.journeys[0] : null;
       let html = '<div class="verdict">';
       if (!carOnly) {
         html += `<div class="opt ${bestJ && ptBetter ? 'best' : ''}"><div class="k">${esc(tr('publicTransport'))}</div>`
-          + (bestJ ? `<div class="v ${bestJ.late ? 'lateTxt' : ''}">${hm(bestJ.arrive)}</div><div class="s">${esc(tr('leave', { time: hm(bestJ.leave) }))} · ${bestJ.legs.map((l) => esc(l.line)).join(' + ')}${bestJ.late ? ` · ${esc(tr('lateWarn'))}` : ''}</div>`
-            : `<div class="v">–</div><div class="s">${esc(tr('noConnection'))}</div>`) + '</div>';
+          + (bestJ ? `<div class="v ${bestJ.late ? 'lateTxt' : ''}">${hm(bestJ.arrive)}</div><div class="s">${esc(tr('leave', { time: hm(bestJ.leave) }))} · ${bestJ.legs.map((l) => `<span class="badge ${esc(l.mode)}">${esc(l.line)}</span>`).join('')}${bestJ.late ? ` · ${esc(tr('lateWarn'))}` : ''}</div>`
+            : nextJ ? `<div class="v">${hm(nextJ.arrive)}</div><div class="s">${esc(tr('nextLeave', { day: dayName(nextJ.leave), time: hm(nextJ.leave) }))} · ${nextJ.legs.map((l) => `<span class="badge ${esc(l.mode)}">${esc(l.line)}</span>`).join('')}</div>`
+              : `<div class="v">–</div><div class="s">${esc(tr('noConnection'))}</div>`) + '</div>';
       }
       if (d && (carOnly || settings.show_drive !== false)) {
         const warn = d.condition && d.condition.slippery ? ` · ${tr('slippery')}` : '';
@@ -265,6 +279,7 @@
       }
 
       if (t) html += `<h3>${esc(tr('publicTransport'))} <span>${esc(tr('from', { place: t.origin }))}${t.walkTo ? ` · ${esc(tr('walk', { n: t.walkTo }))}` : ''}</span></h3>${transitHtml(t, now)}`;
+      if (nx && nx.journeys.length) html += `<h3>${esc(tr('nextCommute'))} <span>${esc(dayName(nx.start))} ${hm(nx.start)}</span></h3>${nextHtml(nx)}`;
       if (d && (carOnly || settings.show_drive !== false)) html += `<h3>${esc(tr('car'))} <span>${esc(d.roads || '')}</span></h3>${driveHtml(d)}`;
       if (w && settings.show_weather !== false) {
         const day = w.start ? new Date(w.start).toLocaleDateString(tr('locale'), { weekday: 'long', timeZone: TZ }) : '';
@@ -289,7 +304,13 @@
     async function load() {
       try {
         const id = settings.commute && settings.commute.id ? settings.commute.id : '';
-        data = await H.api('GET', `/commute?commute=${encodeURIComponent(id)}`);
+        const r = await H.api('GET', `/commute?commute=${encodeURIComponent(id)}`);
+        if (r.loading) { // first fetch after a restart is still running: ask again shortly
+          if (!data) { document.getElementById('title').textContent = r.name || ''; document.getElementById('main').innerHTML = `<div class="msg">${esc(tr('fetching'))}</div>`; fit(); }
+          setTimeout(load, 5000);
+          return;
+        }
+        data = r;
         skew = data.now - Date.now();
         if (data.tz) TZ = data.tz;
         render();

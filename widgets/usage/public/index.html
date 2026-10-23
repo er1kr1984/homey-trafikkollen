@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    :root {
+      --tk-text: var(--homey-text-color, #1a1a1a);
+      --tk-muted: var(--homey-text-color-light, #8a8a8a);
+      --tk-line: var(--homey-line-color, rgba(128,128,128,.22));
+      --tk-soft: rgba(128,128,128,.16);
+      --tk-ok: #2bb673;
+      --tk-warn: #f5a623;
+      --tk-bad: #e5484d;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: transparent; }
+    body { font-family: var(--homey-font-family, -apple-system, Roboto, sans-serif); color: var(--tk-text); font-size: 13px; padding: 12px 14px 10px; }
+    .top { display: flex; justify-content: space-between; align-items: baseline; }
+    h1 { font-size: 15px; margin: 0; }
+    .when { color: var(--tk-muted); font-size: 12px; }
+    .big { margin-top: 10px; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+    .big b { font-size: 28px; font-variant-numeric: tabular-nums; }
+    .big span { color: var(--tk-muted); }
+    .bar { height: 10px; border-radius: 5px; background: var(--tk-soft); overflow: hidden; margin: 6px 0 10px; }
+    .bar i { display: block; height: 100%; width: 0; background: var(--tk-ok); border-radius: 5px; transition: width .3s; }
+    .bar.warn i { background: var(--tk-warn); }
+    .bar.bad i { background: var(--tk-bad); }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+    .tile { background: var(--tk-soft); border-radius: 10px; padding: 7px 9px; min-width: 0; }
+    .tile small { display: block; color: var(--tk-muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tile b { font-size: 16px; font-variant-numeric: tabular-nums; }
+    .tile.warn b { color: var(--tk-warn); }
+    .tile.bad b { color: var(--tk-bad); }
+    .kinds { border-top: 1px solid var(--tk-line); padding-top: 6px; }
+    .kind { display: grid; grid-template-columns: 1fr 52px; gap: 8px; align-items: center; padding: 3px 0; }
+    .kind .l { display: flex; justify-content: space-between; gap: 6px; }
+    .kind .l span:last-child { color: var(--tk-muted); font-variant-numeric: tabular-nums; }
+    .kind .kb { height: 6px; border-radius: 3px; background: var(--tk-soft); overflow: hidden; }
+    .kind .kb i { display: block; height: 100%; background: var(--tk-muted); }
+    .tvl { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; margin: 2px 0 4px; }
+    .alert { margin-top: 8px; padding: 6px 9px; border-radius: 8px; background: rgba(229,72,77,.14); font-size: 12px; }
+    .foot { margin-top: 8px; color: var(--tk-muted); font-size: 11px; }
+    .msg { color: var(--tk-muted); padding: 16px 0; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="top"><h1 id="title">Trafiklab</h1><span class="when" id="when"></span></div>
+  <div id="main"><div class="msg">…</div></div>
+  <div class="foot" id="foot"></div>
+
+  <script>
+    // Shows how many Trafiklab requests this app has made this month (from lib/usage.js via /usage).
+    // Texts come from the settings page's "usage" strings, with English fallbacks.
+    const EN = {
+      title: 'Trafiklab usage', month: 'This month', today: 'Today', minute: 'Last minute', projected: 'By month end',
+      soon: 'after a few hours', of: 'of {{monthly}} requests ({{pct}} %)', boards: 'Departure boards', commutes: 'Commutes',
+      search: 'Stop searches', stoplist: 'Stop list', limited: 'Trafiklab said "too many requests" {{n}} time(s) this month, last at {{time}}. The app waits and tries again by itself.',
+      previous: 'Last month ({{month}}): {{n}} requests', note: 'Only this app on this Homey', updated: 'updated {{time}}',
+      tv: 'Trafikverket', tvNote: 'no monthly limit', tvLine: '{{total}} this month · {{today}} today',
+      messages: 'Road messages', conditions: 'Road conditions', cameras: 'Cameras', speed: 'Speed', trains: 'Trains', ferries: 'Ferries', weather: 'Road weather', images: 'Camera images',
+    };
+    const SV = {
+      title: 'Trafiklab-användning', month: 'Den här månaden', today: 'I dag', minute: 'Senaste minuten', projected: 'Vid månadens slut',
+      soon: 'om några timmar', of: 'av {{monthly}} anrop ({{pct}} %)', boards: 'Avgångstavlor', commutes: 'Pendlingar',
+      search: 'Hållplatssökningar', stoplist: 'Hållplatslistan', limited: 'Trafiklab svarade "för många anrop" {{n}} gång(er) den här månaden, senast {{time}}. Appen väntar och försöker igen själv.',
+      previous: 'Förra månaden ({{month}}): {{n}} anrop', note: 'Bara den här appen på den här Homeyn', updated: 'uppdaterad {{time}}',
+      tv: 'Trafikverket', tvNote: 'ingen månadsgräns', tvLine: '{{total}} den här månaden · {{today}} i dag',
+      messages: 'Trafikmeddelanden', conditions: 'Väglag', cameras: 'Kameror', speed: 'Hastighet', trains: 'Tåg', ferries: 'Färjor', weather: 'Vägväder', images: 'Kamerabilder',
+    };
+    let H = null; let L = EN; let locale = 'en-GB';
+    const tr = (k, v = {}) => String(L[k] || EN[k] || k).replace(/{{\s*(\w+)\s*}}/g, (_, n) => (v[n] != null ? v[n] : ''));
+    const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const num = (n) => Number(n || 0).toLocaleString(locale);
+    const hm = (t) => new Date(t).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+    let ready = false;
+
+    function fit() {
+      const h = Math.ceil(document.body.scrollHeight) + 2;
+      if (!ready) { ready = true; H.ready({ height: h }); } else H.setHeight(h);
+    }
+
+    function render(u) {
+      const pct = u.monthly ? (u.total / u.monthly) * 100 : 0;
+      const level = (p) => (p >= 100 ? 'bad' : p >= 80 ? 'warn' : '');
+      const projPct = u.projected != null && u.monthly ? (u.projected / u.monthly) * 100 : 0;
+      const minPct = u.perMinute ? (u.lastMinute / u.perMinute) * 100 : 0;
+      const kinds = ['boards', 'commutes', 'search', 'stoplist'];
+      const max = Math.max(1, ...kinds.map((k) => u.kinds[k] || 0));
+      let html = `<div class="big"><b>${num(u.total)}</b><span>${esc(tr('of', { monthly: num(u.monthly), pct: pct.toLocaleString(locale, { maximumFractionDigits: 1 }) }))}</span></div>`;
+      html += `<div class="bar ${level(pct)}"><i style="width:${Math.min(100, pct)}%"></i></div>`;
+      html += `<div class="grid">
+        <div class="tile"><small>${esc(tr('today'))}</small><b>${num(u.today)}</b></div>
+        <div class="tile ${level(minPct)}"><small>${esc(tr('minute'))}</small><b>${num(u.lastMinute)}</b> <small style="display:inline">/ ${num(u.perMinute)}</small></div>
+        <div class="tile ${level(projPct)}"><small>${esc(tr('projected'))}</small>${u.projected != null ? `<b>${num(u.projected)}</b>` : `<small style="padding-top:3px">${esc(tr('soon'))}</small>`}</div>
+      </div>`;
+      html += `<div class="kinds">${kinds.map((k) => `<div class="kind"><div class="l"><span>${esc(tr(k))}</span><span>${num(u.kinds[k])}</span></div><div class="kb"><i style="width:${((u.kinds[k] || 0) / max) * 100}%"></i></div></div>`).join('')}</div>`;
+      const v = u.trafikverket;   // added later by the app; older versions don't send it
+      if (v && typeof v.total === 'number') {
+        const vk = Object.entries(v.kinds || {}).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+        const vmax = Math.max(1, ...vk.map(([, n]) => n));
+        html += `<div class="kinds" style="margin-top:8px"><div class="kind"><div class="l"><b>${esc(tr('tv'))}</b><span>${esc(tr('tvNote'))}</span></div><div></div></div>`
+          + `<div class="tvl">${esc(tr('tvLine', { total: num(v.total), today: num(v.today) }))}</div>`
+          + vk.map(([k, n]) => `<div class="kind"><div class="l"><span>${esc(tr(k))}</span><span>${num(n)}</span></div><div class="kb"><i style="width:${(n / vmax) * 100}%"></i></div></div>`).join('') + '</div>';
+      }
+      if (u.limited) html += `<div class="alert">${esc(tr('limited', { n: u.limited, time: u.lastLimited ? hm(u.lastLimited) : '–' }))}</div>`;
+      document.getElementById('main').innerHTML = html;
+      const month = new Date(`${u.month}-01T12:00:00`).toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+      document.getElementById('when').textContent = month;
+      const prev = u.previous ? `${tr('previous', { month: new Date(`${u.previous.month}-01T12:00:00`).toLocaleDateString(locale, { month: 'long' }), n: num(u.previous.total) })} · ` : '';
+      document.getElementById('foot').textContent = `${prev}${tr('note')} · ${tr('updated', { time: hm(Date.now()) })}`;
+      fit();
+    }
+
+    async function load() {
+      try {
+        render(await H.api('GET', '/usage'));
+      } catch (e) {
+        document.getElementById('main').innerHTML = `<div class="msg">${esc(e.message || e)}</div>`;
+        fit();
+      }
+    }
+
+    function onHomeyReady(Homey) {
+      H = Homey;
+      // the settings page's Swedish title tells us Homey runs in Swedish
+      const title = typeof Homey.__ === 'function' ? Homey.__('settings.usage.title') : '';
+      if (title && /användning/i.test(title)) { L = SV; locale = 'sv-SE'; }
+      document.getElementById('title').textContent = tr('title');
+      load();
+      setInterval(load, 60000);
+    }
+  </script>
+</body>
+</html>

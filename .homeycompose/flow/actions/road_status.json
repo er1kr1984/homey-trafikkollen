@@ -1,0 +1,70 @@
+{
+  "title": {
+    "en": "Get the road status",
+    "sv": "Hämta vägläget"
+  },
+  "hint": {
+    "en": "A short summary of the watched roads (messages, accidents, road condition) as tags, for a speaker or a notification. Example: At 06:45 → Get the road status → Say [Status].",
+    "sv": "En kort sammanfattning av vägarna du bevakar (meddelanden, olyckor, väglag) som taggar, för en högtalare eller en notis. Exempel: Kl. 06:45 → Hämta vägläget → Säg [Läge]."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=road"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "text",
+      "type": "string",
+      "title": {
+        "en": "Status",
+        "sv": "Läge"
+      },
+      "example": {
+        "en": "2 traffic messages on E4: accident on E4 at Häggvik. Road condition: normal.",
+        "sv": "2 trafikmeddelanden på E4: olycka på E4 vid Häggvik. Väglag: normalt."
+      }
+    },
+    {
+      "name": "count",
+      "type": "number",
+      "title": {
+        "en": "Number of messages",
+        "sv": "Antal meddelanden"
+      },
+      "example": 2
+    },
+    {
+      "name": "accident",
+      "type": "boolean",
+      "title": {
+        "en": "There is an accident",
+        "sv": "Det finns en olycka"
+      },
+      "example": true
+    },
+    {
+      "name": "slippery",
+      "type": "boolean",
+      "title": {
+        "en": "Roads are slippery",
+        "sv": "Halt väglag"
+      },
+      "example": false
+    },
+    {
+      "name": "condition",
+      "type": "string",
+      "title": {
+        "en": "Road condition",
+        "sv": "Väglag"
+      },
+      "example": {
+        "en": "Normal",
+        "sv": "Normalt"
+      }
+    }
+  ]
+}

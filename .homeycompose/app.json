@@ -1,6 +1,6 @@
 {
   "id": "com.erikrichardson.trafik",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "compatibility": ">=12.1.0",
   "runtime": "nodejs",
   "sdk": 3,
@@ -117,6 +117,22 @@
     "previewCommute": {
       "method": "POST",
       "path": "/commute-preview"
+    },
+    "getUsage": {
+      "method": "GET",
+      "path": "/usage"
+    },
+    "getLeave": {
+      "method": "GET",
+      "path": "/leave"
+    },
+    "getCameraWall": {
+      "method": "GET",
+      "path": "/camera-wall"
+    },
+    "getFerryRoute": {
+      "method": "GET",
+      "path": "/ferry-route"
     }
   }
 }

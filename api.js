@@ -31,6 +31,18 @@ const handlers = {
   async suggestTransfers({ homey, body }) {
     return homey.app.suggestTransfers(body || {});
   },
+  async getLeave({ homey, query }) {
+    return homey.app.leave(query.source || '', query.margin);
+  },
+  async getFerryRoute({ homey, query }) {
+    return homey.app.ferryRoute(query.route || '', query.rows);
+  },
+  async getCameraWall({ homey, query }) {
+    return homey.app.cameraWall(String(query.names || '').split('|'), query.incidents !== '0');
+  },
+  async getUsage({ homey }) {
+    return homey.app.usageSummary();
+  },
   async previewCommute({ homey, body }) {
     return homey.app.previewCommute(body || {});
   },

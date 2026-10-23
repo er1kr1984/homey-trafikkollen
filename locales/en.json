@@ -152,9 +152,35 @@
       "alertDelay": "Alert when a trip is at least",
       "alertDelayUnit": "min late"
     },
-    "credits": "Data: Trafiklab.se (CC BY 4.0), Trafikverket (open data), SMHI (CC BY 4.0) and © OpenStreetMap contributors (address search). This app is not affiliated with them."
+    "credits": "Data: Trafiklab.se (CC BY 4.0), Trafikverket (open data), SMHI (CC BY 4.0) and © OpenStreetMap contributors (address search). This app is not affiliated with them.",
+    "usage": {
+      "title": "3. Trafiklab usage",
+      "intro": "Each departure board, commute and search asks Trafiklab for data. Your free key has a limit, so here you can see how much this app uses.",
+      "month": "This month",
+      "of": "{{total}} of {{monthly}} requests ({{pct}} %)",
+      "today": "Today: {{n}}",
+      "minute": "Last minute: {{n}} of {{max}}",
+      "projected": "Expected by the end of the month: about {{n}}",
+      "projectedSoon": "Expected by the end of the month: shown after a few hours of use",
+      "kinds": "Used by: departure boards {{boards}} · commutes {{commutes}} · stop searches {{search}} · stop list {{stoplist}}",
+      "limited": "Trafiklab said \"too many requests\" {{n}} time(s) this month, last at {{time}}. The app waits and tries again by itself.",
+      "previous": "Last month ({{month}}): {{n}} requests",
+      "allowance": "Your monthly allowance",
+      "allowanceHint": "The free Bronze level allows 100,000 requests a month and 25 a minute. If you upgraded your key on trafiklab.se, type its monthly limit here. You get a Homey notification at 80 % and 100 %.",
+      "save": "Save",
+      "saved": "Saved.",
+      "refresh": "Refresh",
+      "note": "This counts only what this app on this Homey asks for. If you use the same key somewhere else, trafiklab.se (My projects → your project) shows the total.",
+      "tvTitle": "Trafikverket (roads, cameras, trains, ferries)",
+      "tvTotal": "{{total}} requests this month",
+      "tvKinds": "Used by: road messages {{messages}} · road conditions {{conditions}} · camera lists {{cameras}} · camera pictures {{images}} · speed {{speed}} · trains {{trains}} · ferries {{ferries}} · road weather {{weather}}",
+      "tvNote": "Trafikverket has no fixed monthly limit. They only get in touch if an app sends far more than normal, and this app stays well below that."
+    }
   },
   "widget": {
+    "inHours": "in {{h}} h {{m}} min",
+    "nextCommute": "Next commute",
+    "nextLeave": "next trip {{day}} {{time}}",
     "locale": "en-GB",
     "loading": "Loading…",
     "publicTransport": "Public transport",
@@ -175,7 +201,7 @@
     "Cancelled": "Cancelled",
     "atWork": "arrive",
     "changeAt": "{{n}} min change at {{stop}}",
-    "noConnections": "No connections found in the next two hours",
+    "noConnections": "No trips found in the next 4 hours",
     "road": "Road",
     "messages": "{{n}} message(s) on {{roads}}",
     "until": "until {{date}}",
@@ -226,10 +252,19 @@
       "track": "track {{n}}"
     },
     "reportedAt": "reported {{time}}",
-    "changedAt": "updated {{time}}"
+    "changedAt": "updated {{time}}",
+    "fetching": "Fetching departures…"
   },
   "road": {
-    "noCamera": "There's no traffic camera called \"{{name}}\". Try a shorter name, for example just the town. Or open this device's settings and tap Repair to choose from a list with photos."
+    "noTestIncident": "There are no traffic messages on your roads right now, so there is nothing to test with.",
+    "noCamera": "There's no traffic camera called \"{{name}}\". Try a shorter name, for example just the town. Or open this device's settings and tap Repair to choose from a list with photos.",
+    "status": "{{n}} traffic message(s) on {{roads}}: {{what}}. Road condition: {{cond}}.",
+    "statusNone": "No traffic messages on {{roads}}. Road condition: {{cond}}.",
+    "slipperyNow": "Slippery roads!",
+    "at": "at",
+    "allRoads": "the roads",
+    "item": "{{type}} on {{road}} at {{place}}",
+    "itemNoPlace": "{{type}} on {{road}}"
   },
   "camera": {
     "title": "Choose a traffic camera",
@@ -242,12 +277,16 @@
     "clear": "No preference: use the camera closest to the area",
     "saved": "Saved.",
     "label": "Traffic camera (optional)",
-    "km": "{{km}} km away"
+    "km": "{{km}} km away",
+    "notFound": "No traffic camera called \"{{name}}\" was found."
   },
   "flow": {
     "noCommute": "That commute no longer exists. Pick another one in the Flow card.",
     "leaveText": "Leave in {{n}} min: {{legs}}, there at {{arrive}}",
-    "leaveCarText": "Leave by car in {{n}} min, there at {{arrive}}"
+    "leaveCarText": "Leave by car in {{n}} min, there at {{arrive}}",
+    "lateText": "{{name}}: you will be about {{n}} min late (there at {{arrive}}, wanted {{by}}).",
+    "clearedText": "{{name}}: no problems any more.",
+    "allCommutes": "All commutes"
   },
   "nearby": {
     "noLocation": "Your Homey has no location yet. Set it in the Homey app: More → Settings → Location."
@@ -265,6 +304,54 @@
     "none": "No departures in the next 6 hours",
     "leaveIn": "Leave in {{n}} min for",
     "leaveNow": "Leave now for"
+  },
+  "ferryWidget": {
+    "pick": "Pick a ferry route in the widget settings.",
+    "from": "From {{name}}",
+    "inMin": "in {{n}} min",
+    "now": "now",
+    "none": "No departures in the next 6 hours",
+    "updated": "Trafikverket · updated {{time}}"
+  },
+  "device": {
+    "noneHour": "No departures in the next hour",
+    "noneReachable": "None you can reach in time in the next hour"
+  },
+  "usage": {
+    "warn80": "Trafikkollen has used {{total}} of your {{monthly}} Trafiklab requests this month (80 %). Departures may stop updating if it runs out; see the app settings.",
+    "warnFull": "Trafikkollen has used all {{monthly}} Trafiklab requests for this month. Departures may not update until next month; see the app settings."
+  },
+  "leave": {
+    "title": "Time to leave",
+    "pick": "Pick a commute or departure board in the widget settings.",
+    "min": "min",
+    "toLeave": "to go",
+    "goNow": "Leave now!",
+    "hours": "{{h}} h {{m}} min",
+    "leaveAt": "Leave at {{time}}",
+    "departs": "departs {{time}}",
+    "from": "from {{place}}",
+    "walk": "{{n}} min walk",
+    "late": "Live data says {{n}} min late, but we still count on {{time}}: buses and trains can make up time.",
+    "early": "Leaving {{n}} min early according to live data.",
+    "noRealtime": "No live data for this departure: timetable time.",
+    "cancelled": "{{line}} at {{time}} is cancelled.",
+    "none": "No departures found right now.",
+    "stale": "The times are {{n}} min old. Check the timetable if you are in a hurry.",
+    "stop": "Could not update for {{n}} min, so no countdown. Check the timetable yourself.",
+    "then": "Then",
+    "margin": "Includes {{walk}} min walk + {{margin}} min margin",
+    "guide": "A guide, not a guarantee: always keep an eye on the stop.",
+    "kindBoard": "Departure board",
+    "kindCommute": "Commute",
+    "carOnly": "This commute is by car only. Pick a commute with public transport or a departure board.",
+    "loading": "Fetching departures…"
+  },
+  "cameras": {
+    "pick": "Pick up to four cameras in the widget settings (type part of a name, e.g. \"E4\" or a town).",
+    "missing": "Camera \"{{name}}\" was not found. Pick it again in the widget settings.",
+    "tapHint": "Tap a picture to make it bigger",
+    "source": "Pictures: Trafikverket · updated {{time}}"
   },
   "errors": {
     "noTrafiklabKey": "Add your free Trafiklab key first: in the Homey app, go to Apps > Live Traffic & Transit Sweden > Configure and follow the steps.",

@@ -1,0 +1,47 @@
+{
+  "title": {
+    "en": "Take a picture from a traffic camera",
+    "sv": "Ta en bild från en trafikkamera"
+  },
+  "titleFormatted": {
+    "en": "Take a picture from [[camera]]",
+    "sv": "Ta en bild från [[camera]]"
+  },
+  "hint": {
+    "en": "Gets the latest picture from any of Trafikverket's traffic cameras. Use the Picture tag with \"Send image with message\" to get it on your phone. Example: Weekdays at 07:00 → Take a picture from \"Hjärup\" → Send the picture to your phone.",
+    "sv": "Hämtar den senaste bilden från någon av Trafikverkets trafikkameror. Använd taggen Bild med \"Skicka bild med meddelande\" för att få den i telefonen. Exempel: Vardagar kl. 07:00 → Ta en bild från \"Hjärup\" → Skicka bilden till telefonen."
+  },
+  "args": [
+    {
+      "name": "camera",
+      "type": "autocomplete",
+      "title": {
+        "en": "Camera",
+        "sv": "Kamera"
+      },
+      "placeholder": {
+        "en": "Type a road or place, e.g. E4",
+        "sv": "Skriv en väg eller ort, t.ex. E4"
+      }
+    }
+  ],
+  "tokens": [
+    {
+      "name": "image",
+      "type": "image",
+      "title": {
+        "en": "Picture",
+        "sv": "Bild"
+      }
+    },
+    {
+      "name": "camera",
+      "type": "string",
+      "title": {
+        "en": "Camera",
+        "sv": "Kamera"
+      },
+      "example": "Hjärup nordöst"
+    }
+  ]
+}

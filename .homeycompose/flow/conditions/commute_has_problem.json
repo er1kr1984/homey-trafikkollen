@@ -1,0 +1,28 @@
+{
+  "title": {
+    "en": "There !{{is|is no}} problem on a commute",
+    "sv": "Det !{{finns|finns inget}} problem på en pendling"
+  },
+  "titleFormatted": {
+    "en": "There !{{is|is no}} problem on [[commute]]",
+    "sv": "Det !{{finns|finns inget}} problem på [[commute]]"
+  },
+  "hint": {
+    "en": "Checks right now for cancelled or late trips, new accidents on the car route, slippery roads and queues, the same things that \"There is a problem on a commute\" warns about.",
+    "sv": "Kollar just nu efter inställda eller sena resor, nya olyckor på bilvägen, halt väglag och köer, samma saker som \"Det är problem på en pendling\" varnar för."
+  },
+  "args": [
+    {
+      "name": "commute",
+      "type": "autocomplete",
+      "title": {
+        "en": "Commute",
+        "sv": "Pendling"
+      },
+      "placeholder": {
+        "en": "Pick a commute",
+        "sv": "Välj en pendling"
+      }
+    }
+  ]
+}

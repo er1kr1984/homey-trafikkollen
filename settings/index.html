@@ -140,6 +140,26 @@
     <div class="tk-res" id="json-res"></div>
   </details>
 
+  <!-- 3. Trafiklab usage -->
+  <h2 data-i18n="settings.usage.title"></h2>
+  <p class="tk-hint" data-i18n="settings.usage.intro"></p>
+  <div class="tk-editor" id="usage">
+    <label class="homey-form-label" data-i18n="settings.usage.month"></label>
+    <div id="u-total" style="font-weight:600"></div>
+    <div style="height:10px;border-radius:5px;background:rgba(128,128,128,.25);margin:6px 0 8px;overflow:hidden"><div id="u-bar" style="height:100%;width:0;background:#0b5394"></div></div>
+    <div class="tk-hint" id="u-lines" style="white-space:pre-line"></div>
+    <label class="homey-form-label" for="u-monthly" style="margin-top:12px" data-i18n="settings.usage.allowance"></label>
+    <div class="tk-row"><input class="homey-form-input" id="u-monthly" type="number" min="1000" step="1000" style="max-width:160px" /><button class="homey-button-secondary" id="u-save" data-i18n="settings.usage.save"></button></div>
+    <div class="tk-hint" data-i18n="settings.usage.allowanceHint"></div>
+    <div class="tk-hint" style="margin-top:8px" data-i18n="settings.usage.note"></div>
+    <label class="homey-form-label" style="margin-top:16px" data-i18n="settings.usage.tvTitle"></label>
+    <div id="tv-total" style="font-weight:600"></div>
+    <div class="tk-hint" id="tv-lines" style="white-space:pre-line"></div>
+    <div class="tk-hint" style="margin-top:8px" data-i18n="settings.usage.tvNote"></div>
+    <button class="homey-button-secondary-full" id="u-refresh" style="margin-top:10px" data-i18n="settings.usage.refresh"></button>
+    <div class="tk-res" id="u-res"></div>
+  </div>
+
   <p class="tk-hint" style="margin-top:24px" data-i18n="settings.credits"></p>
 
   <script type="text/javascript">
@@ -631,6 +651,48 @@
         if (!Array.isArray(v)) v = [v];
         try { await set('commutes', v); say('json-res', t('settings.commutes.savedN', { n: v.length })); load(); } catch (e) { say('json-res', e.message || String(e), true); }
       });
+
+      // ---- Trafiklab usage
+      const num = (n) => Number(n || 0).toLocaleString('sv-SE');
+      async function loadUsage() {
+        try {
+          const u = await api('GET', '/usage');
+          const tu = (k, v) => t(`settings.usage.${k}`, v);
+          $('u-total').textContent = tu('of', { total: num(u.total), monthly: num(u.monthly), pct: String(u.percent).replace('.', ',') });
+          $('u-bar').style.width = `${Math.min(100, u.percent || 0)}%`;
+          $('u-bar').style.background = u.percent >= 100 ? '#e5484d' : u.percent >= 80 ? '#f5a623' : '#0b5394';
+          const lines = [
+            tu('today', { n: num(u.today) }),
+            tu('minute', { n: u.lastMinute, max: u.perMinute }),
+            u.projected == null ? tu('projectedSoon') : tu('projected', { n: num(u.projected) }),
+            tu('kinds', Object.fromEntries(Object.entries(u.kinds).map(([k, v]) => [k, num(v)]))),
+          ];
+          if (u.limited) lines.push(tu('limited', { n: u.limited, time: hm(u.lastLimited) }));
+          if (u.previous) lines.push(tu('previous', { month: u.previous.month, n: num(u.previous.total) }));
+          $('u-lines').textContent = lines.join('\n');
+          if (!$('u-monthly').value) $('u-monthly').value = u.monthly;
+          const v = u.trafikverket;
+          if (v) {
+            $('tv-total').textContent = tu('tvTotal', { total: num(v.total) });
+            const tl2 = [
+              tu('today', { n: num(v.today) }),
+              tu('minute', { n: v.lastMinute, max: '–' }).replace(/ (av|of) –$/, ''),
+              v.projected == null ? tu('projectedSoon') : tu('projected', { n: num(v.projected) }),
+              tu('tvKinds', Object.fromEntries(Object.entries(v.kinds).map(([k, x]) => [k, num(x)]))),
+            ];
+            if (v.previous) tl2.push(tu('previous', { month: v.previous.month, n: num(v.previous.total) }));
+            $('tv-lines').textContent = tl2.join('\n');
+          }
+          say('u-res', '');
+        } catch (e) { say('u-res', e.message || String(e), true); }
+      }
+      $('u-refresh').addEventListener('click', loadUsage);
+      $('u-save').addEventListener('click', async () => {
+        const v = Math.round(+$('u-monthly').value);
+        if (!(v >= 1000)) { say('u-res', '≥ 1000', true); return; }
+        try { await set('trafiklab_monthly', v); say('u-res', t('settings.usage.saved')); loadUsage(); } catch (e) { say('u-res', e.message || String(e), true); }
+      });
+      loadUsage();
 
       load().finally(() => Homey.ready());
     }

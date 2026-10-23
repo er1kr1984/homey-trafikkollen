@@ -1,0 +1,17 @@
+{
+  "title": {
+    "en": "Send a test incident",
+    "sv": "Skicka en testhändelse"
+  },
+  "hint": {
+    "en": "Runs \"A new road incident appears\" now with the most serious incident on your roads (marked TEST), including the camera picture. Use it to try out your notification Flow.",
+    "sv": "Kör \"En ny trafikhändelse\" direkt med den allvarligaste händelsen på dina vägar (märkt TEST), med kamerabild. Använd den för att prova ditt notisflöde."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=road"
+    }
+  ]
+}

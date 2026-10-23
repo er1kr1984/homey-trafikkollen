@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+  <style>
+    :root {
+      --tk-text: var(--homey-text-color, #1a1a1a);
+      --tk-muted: var(--homey-text-color-light, #8a8a8a);
+      --tk-line: var(--homey-line-color, rgba(128,128,128,.22));
+      --tk-soft: rgba(128,128,128,.10);
+      --tk-bad: #e5484d;
+      --tk-warn: #f5a524;
+      --tk-sea: #0891b2;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 12px 14px 8px; color: var(--tk-text); font-family: var(--homey-font-family, -apple-system, system-ui, sans-serif); font-size: 14px; }
+    .head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .title { font-weight: 700; font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .title::before { content: '⛴ '; }
+    .clock { font-size: 12px; color: var(--tk-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .msg-bad { margin-top: 8px; padding: 7px 9px; border-radius: 8px; font-size: 13px; background: rgba(229,72,77,.12); color: var(--tk-bad); font-weight: 600; }
+    .sides { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    @media (max-width: 300px) { .sides { grid-template-columns: 1fr; } }
+    .side { background: var(--tk-soft); border-radius: 10px; padding: 8px 10px; min-width: 0; }
+    .side h3 { margin: 0 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--tk-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dep { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; padding: 5px 0; border-top: 1px solid var(--tk-line); }
+    .dep:first-of-type { border-top: 0; }
+    .dep b { font-size: 18px; font-variant-numeric: tabular-nums; }
+    .dep .in { font-size: 12px; color: var(--tk-muted); white-space: nowrap; }
+    .dep.first .in { color: var(--tk-sea); font-weight: 700; }
+    .dep .info { flex-basis: 100%; font-size: 12px; color: var(--tk-warn); }
+    .dep { flex-wrap: wrap; }
+    .none { color: var(--tk-muted); font-size: 13px; padding: 6px 0; }
+    .common { font-size: 12px; color: var(--tk-muted); margin: 2px 0 4px; }
+    .foot { margin-top: 8px; font-size: 11px; color: var(--tk-muted); }
+    .msg { padding: 18px 4px; color: var(--tk-muted); text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="head"><div class="title" id="title"></div><div class="clock" id="clock"></div></div>
+  <div id="main"><div class="msg">…</div></div>
+  <div class="foot" id="foot"></div>
+  <script type="text/javascript">
+    const EN = {
+      pick: 'Pick a ferry route in the widget settings.', from: 'From {{name}}', inMin: 'in {{n}} min', now: 'now',
+      none: 'No departures in the next 6 hours', updated: 'Trafikverket · updated {{time}}',
+    };
+    let H = null; let settings = {}; let data = null; let skew = 0; let ready = false;
+    const tr = (k, v = {}) => {
+      let s = H && typeof H.__ === 'function' ? H.__(`ferryWidget.${k}`) : null;
+      if (!s || s === `ferryWidget.${k}`) s = EN[k] || k;
+      return String(s).replace(/{{\s*(\w+)\s*}}/g, (_, n) => (v[n] != null ? v[n] : ''));
+    };
+    const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const hm = (t) => new Date(t).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Stockholm' });
+
+    function render() {
+      const now = Date.now() + skew;
+      document.getElementById('clock').textContent = hm(now);
+      if (!data) return;
+      document.getElementById('title').textContent = data.name;
+      const msgs = (data.messages || []).map((m) => `<div class="msg-bad">⚠ ${esc(m.text)}</div>`).join('');
+      const sides = (data.directions || []).map((d) => {
+        const deps = d.departures.filter((x) => x.time > now - 60000);
+        // a note on every departure (e.g. "call-on-demand trip") is shown once, under the heading
+        const common = deps.length ? (deps[0].info || []).filter((t) => deps.every((x) => (x.info || []).includes(t))) : [];
+        const rows = deps.map((x, i) => {
+          const own = (x.info || []).filter((t) => !common.includes(t));
+          const n = Math.floor((x.time - now) / 60000);
+          return `<div class="dep ${i === 0 ? 'first' : ''}"><b>${hm(x.time)}</b><span class="in">${esc(n <= 0 ? tr('now') : tr('inMin', { n }))}</span>`
+            + `${own.length ? `<div class="info">${esc(own.join(' · '))}</div>` : ''}</div>`;
+        }).join('');
+        const note = common.length ? `<div class="common">ℹ️ ${esc(common.join(' · '))}</div>` : '';
+        return `<div class="side"><h3>${esc(tr('from', { name: d.from }))}</h3>${note}${d.error ? `<div class="none">${esc(d.error)}</div>` : rows || `<div class="none">${esc(tr('none'))}</div>`}</div>`;
+      }).join('');
+      document.getElementById('main').innerHTML = `${msgs}<div class="sides">${sides}</div>`;
+      document.getElementById('foot').textContent = tr('updated', { time: hm(data.updated || now) });
+      fit();
+    }
+
+    function fit() {
+      const h = Math.ceil(document.body.scrollHeight) + 2;
+      if (!ready) { ready = true; H.ready({ height: h }); } else H.setHeight(h);
+    }
+
+    async function load() {
+      if (!settings.route || !settings.route.id) {
+        document.getElementById('main').innerHTML = `<div class="msg">${esc(tr('pick'))}</div>`;
+        fit(); return;
+      }
+      try {
+        data = await H.api('GET', `/ferry?route=${encodeURIComponent(settings.route.id)}&rows=${Number(settings.rows) || 3}`);
+        skew = data.now - Date.now();
+        render();
+      } catch (e) {
+        if (data) { render(); return; }
+        document.getElementById('main').innerHTML = `<div class="msg">${esc(e.message || e)}</div>`;
+        fit();
+      }
+    }
+
+    function onHomeyReady(Homey) {
+      H = Homey;
+      settings = Homey.getSettings() || {};
+      load();
+      setInterval(load, 60000);
+      setInterval(render, 15000);
+    }
+  </script>
+</body>
+</html>

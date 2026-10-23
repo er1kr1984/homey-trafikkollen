@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.erikrichardson.trafik",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "compatibility": ">=12.1.0",
   "runtime": "nodejs",
   "sdk": 3,
@@ -118,6 +118,22 @@
     "previewCommute": {
       "method": "POST",
       "path": "/commute-preview"
+    },
+    "getUsage": {
+      "method": "GET",
+      "path": "/usage"
+    },
+    "getLeave": {
+      "method": "GET",
+      "path": "/leave"
+    },
+    "getCameraWall": {
+      "method": "GET",
+      "path": "/camera-wall"
+    },
+    "getFerryRoute": {
+      "method": "GET",
+      "path": "/ferry-route"
     }
   },
   "flow": {
@@ -328,6 +344,119 @@
           }
         ],
         "id": "commute_problem"
+      },
+      {
+        "title": {
+          "en": "A commute problem is resolved",
+          "sv": "Ett pendlingsproblem är löst"
+        },
+        "titleFormatted": {
+          "en": "A problem on [[commute]] is resolved",
+          "sv": "Ett problem på [[commute]] är löst"
+        },
+        "hint": {
+          "en": "Runs when \"There is a problem on a commute\" has warned today and there have been no problems for a few minutes. Good for an all-clear message.",
+          "sv": "Körs när \"Det är problem på en pendling\" har varnat i dag och det inte har varit några problem på några minuter. Bra för ett \"allt klart\"-meddelande."
+        },
+        "args": [
+          {
+            "name": "commute",
+            "type": "autocomplete",
+            "title": {
+              "en": "Commute",
+              "sv": "Pendling"
+            },
+            "placeholder": {
+              "en": "Pick a commute",
+              "sv": "Välj en pendling"
+            }
+          }
+        ],
+        "tokens": [
+          {
+            "name": "text",
+            "type": "string",
+            "title": {
+              "en": "Message",
+              "sv": "Meddelande"
+            },
+            "example": {
+              "en": "Home → Work: no problems any more.",
+              "sv": "Hem → Jobbet: inga problem längre."
+            }
+          }
+        ],
+        "id": "commute_problem_cleared"
+      },
+      {
+        "title": {
+          "en": "I will be late for a commute",
+          "sv": "Jag blir sen på en pendling"
+        },
+        "titleFormatted": {
+          "en": "I will be late for [[commute]]",
+          "sv": "Jag blir sen på [[commute]]"
+        },
+        "hint": {
+          "en": "Runs once a day when no public transport trip gets you there by the commute's \"arrive by\" time any more (live times). Needs an \"arrive by\" time in the commute.",
+          "sv": "Körs en gång per dag när ingen kollektivtrafikresa längre hinner fram till pendlingens \"framme senast\"-tid (realtid). Kräver en \"framme senast\"-tid i pendlingen."
+        },
+        "args": [
+          {
+            "name": "commute",
+            "type": "autocomplete",
+            "title": {
+              "en": "Commute",
+              "sv": "Pendling"
+            },
+            "placeholder": {
+              "en": "Pick a commute",
+              "sv": "Välj en pendling"
+            }
+          }
+        ],
+        "tokens": [
+          {
+            "name": "text",
+            "type": "string",
+            "title": {
+              "en": "Message",
+              "sv": "Meddelande"
+            },
+            "example": {
+              "en": "Home → Work: you will be about 12 min late (there at 08:12, wanted 08:00).",
+              "sv": "Hem → Jobbet: du blir cirka 12 min sen (framme 08:12, ville vara framme 08:00)."
+            }
+          },
+          {
+            "name": "arrive",
+            "type": "string",
+            "title": {
+              "en": "Earliest arrival",
+              "sv": "Tidigast framme"
+            },
+            "example": "08:12"
+          },
+          {
+            "name": "arrive_by",
+            "type": "string",
+            "title": {
+              "en": "Wanted to arrive by",
+              "sv": "Ville vara framme"
+            },
+            "example": "08:00"
+          },
+          {
+            "name": "minutes_late",
+            "type": "number",
+            "title": {
+              "en": "Minutes late",
+              "sv": "Minuter sen"
+            },
+            "example": 12
+          }
+        ],
+        "id": "commute_will_be_late"
       },
       {
         "title": {
@@ -595,6 +724,116 @@
       },
       {
         "title": {
+          "en": "A departure leaves in ... minutes",
+          "sv": "En avgång går om ... minuter"
+        },
+        "titleFormatted": {
+          "en": "A departure leaves in [[minutes]] minutes",
+          "sv": "En avgång går om [[minutes]] minuter"
+        },
+        "hint": {
+          "en": "Runs once per departure when it is this many minutes away (live time). Make several Flows for several warnings, e.g. 10 and 3 minutes. Follows the device's active hours and filters.",
+          "sv": "Körs en gång per avgång när den är så här många minuter bort (realtid). Gör flera flöden för flera varningar, t.ex. 10 och 3 minuter. Följer enhetens aktiva tider och filter."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=departures|ferry"
+          },
+          {
+            "name": "minutes",
+            "type": "number",
+            "min": 0,
+            "max": 120,
+            "step": 1,
+            "placeholder": {
+              "en": "10",
+              "sv": "10"
+            }
+          }
+        ],
+        "tokens": [
+          {
+            "name": "text",
+            "type": "string",
+            "title": {
+              "en": "Departure",
+              "sv": "Avgång"
+            },
+            "example": {
+              "en": "07:42 bus 5 → Centralen, platform A",
+              "sv": "07:42 buss 5 → Centralen, läge A"
+            }
+          },
+          {
+            "name": "line",
+            "type": "string",
+            "title": {
+              "en": "Line",
+              "sv": "Linje"
+            },
+            "example": "5"
+          },
+          {
+            "name": "direction",
+            "type": "string",
+            "title": {
+              "en": "Direction",
+              "sv": "Riktning"
+            },
+            "example": "Centralen"
+          },
+          {
+            "name": "time",
+            "type": "string",
+            "title": {
+              "en": "Departs (expected)",
+              "sv": "Avgår (väntat)"
+            },
+            "example": "07:42"
+          },
+          {
+            "name": "scheduled",
+            "type": "string",
+            "title": {
+              "en": "Departs (timetable)",
+              "sv": "Avgår (tidtabell)"
+            },
+            "example": "07:40"
+          },
+          {
+            "name": "minutes",
+            "type": "number",
+            "title": {
+              "en": "Minutes until it leaves",
+              "sv": "Minuter tills den går"
+            },
+            "example": 9
+          },
+          {
+            "name": "delay",
+            "type": "number",
+            "title": {
+              "en": "Delay (min)",
+              "sv": "Försening (min)"
+            },
+            "example": 2
+          },
+          {
+            "name": "platform",
+            "type": "string",
+            "title": {
+              "en": "Platform / track",
+              "sv": "Läge / spår"
+            },
+            "example": "A"
+          }
+        ],
+        "id": "departure_in"
+      },
+      {
+        "title": {
           "en": "A road incident is cleared",
           "sv": "En trafikhändelse är över"
         },
@@ -649,6 +888,10 @@
         "title": {
           "en": "A new road incident appears",
           "sv": "En ny trafikhändelse"
+        },
+        "hint": {
+          "en": "Includes a picture from the traffic camera nearest the incident (within 5 km; otherwise the device's own camera). Use it with \"Send image with message\" to get the picture on your phone.",
+          "sv": "Innehåller en bild från trafikkameran närmast händelsen (inom 5 km, annars enhetens egen kamera). Använd den med \"Skicka bild med meddelande\" för att få bilden i telefonen."
         },
         "args": [
           {
@@ -711,6 +954,32 @@
               "sv": "Allvarlighet (1-5)"
             },
             "example": 3
+          },
+          {
+            "name": "image",
+            "type": "image",
+            "title": {
+              "en": "Camera picture",
+              "sv": "Kamerabild"
+            }
+          },
+          {
+            "name": "camera",
+            "type": "string",
+            "title": {
+              "en": "Camera",
+              "sv": "Kamera"
+            },
+            "example": "Mora N"
+          },
+          {
+            "name": "camera_km",
+            "type": "number",
+            "title": {
+              "en": "Camera distance (km)",
+              "sv": "Kamerans avstånd (km)"
+            },
+            "example": 0.6
           }
         ],
         "id": "road_incident_new"
@@ -840,9 +1109,132 @@
           }
         ],
         "id": "time_to_leave"
+      },
+      {
+        "title": {
+          "en": "Trafiklab usage reaches ... %",
+          "sv": "Trafiklab-användningen når ... %"
+        },
+        "titleFormatted": {
+          "en": "Trafiklab usage reaches [[percent]] % of the monthly allowance",
+          "sv": "Trafiklab-användningen når [[percent]] % av månadsgränsen"
+        },
+        "hint": {
+          "en": "Runs once a month when this app has used this share of your Trafiklab key's monthly allowance (set in the app settings).",
+          "sv": "Körs en gång per månad när appen har använt så här stor del av Trafiklab-nyckelns månadsgräns (ställs in i appinställningarna)."
+        },
+        "args": [
+          {
+            "name": "percent",
+            "type": "number",
+            "min": 1,
+            "max": 100,
+            "step": 1,
+            "placeholder": {
+              "en": "50",
+              "sv": "50"
+            }
+          }
+        ],
+        "tokens": [
+          {
+            "name": "percent",
+            "type": "number",
+            "title": {
+              "en": "Used (%)",
+              "sv": "Använt (%)"
+            },
+            "example": 52
+          },
+          {
+            "name": "total",
+            "type": "number",
+            "title": {
+              "en": "Requests this month",
+              "sv": "Anrop den här månaden"
+            },
+            "example": 52000
+          },
+          {
+            "name": "monthly",
+            "type": "number",
+            "title": {
+              "en": "Monthly allowance",
+              "sv": "Månadsgräns"
+            },
+            "example": 100000
+          }
+        ],
+        "id": "usage_reached"
       }
     ],
     "conditions": [
+      {
+        "title": {
+          "en": "The car !{{is|is not}} faster than public transport",
+          "sv": "Bilen !{{är|är inte}} snabbare än kollektivtrafiken"
+        },
+        "titleFormatted": {
+          "en": "The car !{{is|is not}} faster than public transport on [[commute]]",
+          "sv": "Bilen !{{är|är inte}} snabbare än kollektivtrafiken på [[commute]]"
+        },
+        "hint": {
+          "en": "Compares arriving by car if you leave now (your normal driving time) with the next public transport trip you can still catch. Needs the car route switched on in the commute.",
+          "sv": "Jämför när du är framme med bil om du åker nu (din vanliga körtid) med nästa kollektivtrafikresa du hinner med. Kräver att bilvägen är påslagen i pendlingen."
+        },
+        "args": [
+          {
+            "name": "commute",
+            "type": "autocomplete",
+            "title": {
+              "en": "Commute",
+              "sv": "Pendling"
+            },
+            "placeholder": {
+              "en": "Pick a commute",
+              "sv": "Välj en pendling"
+            }
+          }
+        ],
+        "id": "car_faster"
+      },
+      {
+        "title": {
+          "en": "... !{{is|is not}} a commute day",
+          "sv": "... !{{är|är inte}} en pendlingsdag"
+        },
+        "titleFormatted": {
+          "en": "[[when]] !{{is|is not}} a commute day",
+          "sv": "[[when]] !{{är|är inte}} en pendlingsdag"
+        },
+        "hint": {
+          "en": "A commute day is a weekday (Monday to Friday) that is not a Swedish public holiday, such as Midsummer Eve or Christmas Eve. Handy for alarms, heating and lights too.",
+          "sv": "En pendlingsdag är en vardag (måndag till fredag) som inte är en svensk helgdag, som midsommarafton eller julafton. Praktiskt även för väckning, värme och belysning."
+        },
+        "args": [
+          {
+            "name": "when",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "today",
+                "label": {
+                  "en": "Today",
+                  "sv": "I dag"
+                }
+              },
+              {
+                "id": "tomorrow",
+                "label": {
+                  "en": "Tomorrow",
+                  "sv": "I morgon"
+                }
+              }
+            ]
+          }
+        ],
+        "id": "commute_day"
+      },
       {
         "title": {
           "en": "Frost is likely when I leave",
@@ -871,6 +1263,35 @@
           }
         ],
         "id": "commute_frost"
+      },
+      {
+        "title": {
+          "en": "There !{{is|is no}} problem on a commute",
+          "sv": "Det !{{finns|finns inget}} problem på en pendling"
+        },
+        "titleFormatted": {
+          "en": "There !{{is|is no}} problem on [[commute]]",
+          "sv": "Det !{{finns|finns inget}} problem på [[commute]]"
+        },
+        "hint": {
+          "en": "Checks right now for cancelled or late trips, new accidents on the car route, slippery roads and queues, the same things that \"There is a problem on a commute\" warns about.",
+          "sv": "Kollar just nu efter inställda eller sena resor, nya olyckor på bilvägen, halt väglag och köer, samma saker som \"Det är problem på en pendling\" varnar för."
+        },
+        "args": [
+          {
+            "name": "commute",
+            "type": "autocomplete",
+            "title": {
+              "en": "Commute",
+              "sv": "Pendling"
+            },
+            "placeholder": {
+              "en": "Pick a commute",
+              "sv": "Välj en pendling"
+            }
+          }
+        ],
+        "id": "commute_has_problem"
       },
       {
         "title": {
@@ -932,6 +1353,39 @@
       },
       {
         "title": {
+          "en": "Next departure !{{leaves|does not leave}} within ... min",
+          "sv": "Nästa avgång !{{går|går inte}} inom ... min"
+        },
+        "titleFormatted": {
+          "en": "Next departure !{{leaves|does not leave}} within [[minutes]] min",
+          "sv": "Nästa avgång !{{går|går inte}} inom [[minutes]] min"
+        },
+        "hint": {
+          "en": "Counts from now until the next departure you can still reach (walking time included).",
+          "sv": "Räknar från nu till nästa avgång du hinner till (gångtiden inräknad)."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=departures|ferry"
+          },
+          {
+            "name": "minutes",
+            "type": "number",
+            "min": 0,
+            "max": 240,
+            "step": 1,
+            "placeholder": {
+              "en": "15",
+              "sv": "15"
+            }
+          }
+        ],
+        "id": "next_within"
+      },
+      {
+        "title": {
           "en": "There !{{are|are no}} road incidents",
           "sv": "Det !{{finns|finns inga}} trafikhändelser"
         },
@@ -960,6 +1414,54 @@
       }
     ],
     "actions": [
+      {
+        "title": {
+          "en": "Take a picture from a traffic camera",
+          "sv": "Ta en bild från en trafikkamera"
+        },
+        "titleFormatted": {
+          "en": "Take a picture from [[camera]]",
+          "sv": "Ta en bild från [[camera]]"
+        },
+        "hint": {
+          "en": "Gets the latest picture from any of Trafikverket's traffic cameras. Use the Picture tag with \"Send image with message\" to get it on your phone. Example: Weekdays at 07:00 → Take a picture from \"Hjärup\" → Send the picture to your phone.",
+          "sv": "Hämtar den senaste bilden från någon av Trafikverkets trafikkameror. Använd taggen Bild med \"Skicka bild med meddelande\" för att få den i telefonen. Exempel: Vardagar kl. 07:00 → Ta en bild från \"Hjärup\" → Skicka bilden till telefonen."
+        },
+        "args": [
+          {
+            "name": "camera",
+            "type": "autocomplete",
+            "title": {
+              "en": "Camera",
+              "sv": "Kamera"
+            },
+            "placeholder": {
+              "en": "Type a road or place, e.g. E4",
+              "sv": "Skriv en väg eller ort, t.ex. E4"
+            }
+          }
+        ],
+        "tokens": [
+          {
+            "name": "image",
+            "type": "image",
+            "title": {
+              "en": "Picture",
+              "sv": "Bild"
+            }
+          },
+          {
+            "name": "camera",
+            "type": "string",
+            "title": {
+              "en": "Camera",
+              "sv": "Kamera"
+            },
+            "example": "Hjärup nordöst"
+          }
+        ],
+        "id": "camera_picture"
+      },
       {
         "title": {
           "en": "Get the commute briefing",
@@ -1032,6 +1534,193 @@
       },
       {
         "title": {
+          "en": "Get the next departure",
+          "sv": "Hämta nästa avgång"
+        },
+        "hint": {
+          "en": "Gives you the next departure you can still reach (walking time included) as tags, for a speaker or a notification. Example: When the front door opens → Get the next departure → Say \"Bus [Line] leaves in [Minutes] minutes\".",
+          "sv": "Ger dig nästa avgång du hinner till (gångtiden inräknad) som taggar, för en högtalare eller en notis. Exempel: När ytterdörren öppnas → Hämta nästa avgång → Säg \"Buss [Linje] går om [Minuter] minuter\"."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=departures|ferry"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "text",
+            "type": "string",
+            "title": {
+              "en": "Departure",
+              "sv": "Avgång"
+            },
+            "example": {
+              "en": "07:42 bus 5 → Centralen, platform A",
+              "sv": "07:42 buss 5 → Centralen, läge A"
+            }
+          },
+          {
+            "name": "line",
+            "type": "string",
+            "title": {
+              "en": "Line",
+              "sv": "Linje"
+            },
+            "example": "5"
+          },
+          {
+            "name": "direction",
+            "type": "string",
+            "title": {
+              "en": "Direction",
+              "sv": "Riktning"
+            },
+            "example": "Centralen"
+          },
+          {
+            "name": "time",
+            "type": "string",
+            "title": {
+              "en": "Departs (expected)",
+              "sv": "Avgår (väntat)"
+            },
+            "example": "07:42"
+          },
+          {
+            "name": "scheduled",
+            "type": "string",
+            "title": {
+              "en": "Departs (timetable)",
+              "sv": "Avgår (tidtabell)"
+            },
+            "example": "07:40"
+          },
+          {
+            "name": "minutes",
+            "type": "number",
+            "title": {
+              "en": "Minutes until it leaves",
+              "sv": "Minuter tills den går"
+            },
+            "example": 9
+          },
+          {
+            "name": "leave_in",
+            "type": "number",
+            "title": {
+              "en": "Minutes until you need to leave",
+              "sv": "Minuter tills du behöver gå"
+            },
+            "example": 4
+          },
+          {
+            "name": "delay",
+            "type": "number",
+            "title": {
+              "en": "Delay (min)",
+              "sv": "Försening (min)"
+            },
+            "example": 2
+          },
+          {
+            "name": "platform",
+            "type": "string",
+            "title": {
+              "en": "Platform / track",
+              "sv": "Läge / spår"
+            },
+            "example": "A"
+          },
+          {
+            "name": "found",
+            "type": "boolean",
+            "title": {
+              "en": "A departure was found",
+              "sv": "En avgång hittades"
+            },
+            "example": true
+          }
+        ],
+        "id": "next_departure"
+      },
+      {
+        "title": {
+          "en": "Pause commute alerts",
+          "sv": "Pausa pendlingslarm"
+        },
+        "titleFormatted": {
+          "en": "Pause alerts for [[commute]] [[period]]",
+          "sv": "Pausa larm för [[commute]] [[period]]"
+        },
+        "hint": {
+          "en": "Silences \"Time to leave\", \"Engine heater\", problem and \"I will be late\" for a while, e.g. when you work from home or are on holiday. The widgets keep working. Pick \"All commutes\" to pause them all.",
+          "sv": "Tystar \"Dags att gå\", \"Motorvärmare\", problem och \"Jag blir sen\" ett tag, t.ex. när du jobbar hemifrån eller har semester. Widgetarna fortsätter att fungera. Välj \"Alla pendlingar\" för att pausa alla."
+        },
+        "args": [
+          {
+            "name": "commute",
+            "type": "autocomplete",
+            "title": {
+              "en": "Commute",
+              "sv": "Pendling"
+            },
+            "placeholder": {
+              "en": "Pick a commute",
+              "sv": "Välj en pendling"
+            }
+          },
+          {
+            "name": "period",
+            "type": "dropdown",
+            "title": {
+              "en": "For how long",
+              "sv": "Hur länge"
+            },
+            "values": [
+              {
+                "id": "0",
+                "label": {
+                  "en": "for the rest of today",
+                  "sv": "resten av dagen"
+                }
+              },
+              {
+                "id": "1",
+                "label": {
+                  "en": "until tomorrow evening",
+                  "sv": "till i morgon kväll"
+                }
+              },
+              {
+                "id": "2",
+                "label": {
+                  "en": "for 3 days",
+                  "sv": "i 3 dagar"
+                }
+              },
+              {
+                "id": "6",
+                "label": {
+                  "en": "for a week",
+                  "sv": "i en vecka"
+                }
+              },
+              {
+                "id": "13",
+                "label": {
+                  "en": "for two weeks",
+                  "sv": "i två veckor"
+                }
+              }
+            ]
+          }
+        ],
+        "id": "pause_alerts"
+      },
+      {
+        "title": {
           "en": "Refresh now",
           "sv": "Uppdatera nu"
         },
@@ -1043,6 +1732,106 @@
           }
         ],
         "id": "refresh"
+      },
+      {
+        "title": {
+          "en": "Resume commute alerts",
+          "sv": "Återuppta pendlingslarm"
+        },
+        "titleFormatted": {
+          "en": "Resume alerts for [[commute]]",
+          "sv": "Återuppta larm för [[commute]]"
+        },
+        "hint": {
+          "en": "Ends a pause made with \"Pause commute alerts\" straight away.",
+          "sv": "Avslutar en paus från \"Pausa pendlingslarm\" direkt."
+        },
+        "args": [
+          {
+            "name": "commute",
+            "type": "autocomplete",
+            "title": {
+              "en": "Commute",
+              "sv": "Pendling"
+            },
+            "placeholder": {
+              "en": "Pick a commute",
+              "sv": "Välj en pendling"
+            }
+          }
+        ],
+        "id": "resume_alerts"
+      },
+      {
+        "title": {
+          "en": "Get the road status",
+          "sv": "Hämta vägläget"
+        },
+        "hint": {
+          "en": "A short summary of the watched roads (messages, accidents, road condition) as tags, for a speaker or a notification. Example: At 06:45 → Get the road status → Say [Status].",
+          "sv": "En kort sammanfattning av vägarna du bevakar (meddelanden, olyckor, väglag) som taggar, för en högtalare eller en notis. Exempel: Kl. 06:45 → Hämta vägläget → Säg [Läge]."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=road"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "text",
+            "type": "string",
+            "title": {
+              "en": "Status",
+              "sv": "Läge"
+            },
+            "example": {
+              "en": "2 traffic messages on E4: accident on E4 at Häggvik. Road condition: normal.",
+              "sv": "2 trafikmeddelanden på E4: olycka på E4 vid Häggvik. Väglag: normalt."
+            }
+          },
+          {
+            "name": "count",
+            "type": "number",
+            "title": {
+              "en": "Number of messages",
+              "sv": "Antal meddelanden"
+            },
+            "example": 2
+          },
+          {
+            "name": "accident",
+            "type": "boolean",
+            "title": {
+              "en": "There is an accident",
+              "sv": "Det finns en olycka"
+            },
+            "example": true
+          },
+          {
+            "name": "slippery",
+            "type": "boolean",
+            "title": {
+              "en": "Roads are slippery",
+              "sv": "Halt väglag"
+            },
+            "example": false
+          },
+          {
+            "name": "condition",
+            "type": "string",
+            "title": {
+              "en": "Road condition",
+              "sv": "Väglag"
+            },
+            "example": {
+              "en": "Normal",
+              "sv": "Normalt"
+            }
+          }
+        ],
+        "id": "road_status"
       },
       {
         "title": {
@@ -1077,6 +1866,24 @@
           }
         ],
         "id": "set_camera"
+      },
+      {
+        "title": {
+          "en": "Send a test incident",
+          "sv": "Skicka en testhändelse"
+        },
+        "hint": {
+          "en": "Runs \"A new road incident appears\" now with the most serious incident on your roads (marked TEST), including the camera picture. Use it to try out your notification Flow.",
+          "sv": "Kör \"En ny trafikhändelse\" direkt med den allvarligaste händelsen på dina vägar (märkt TEST), med kamerabild. Använd den för att prova ditt notisflöde."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=road"
+          }
+        ],
+        "id": "test_incident"
       }
     ]
   },
@@ -1837,6 +2644,64 @@
       },
       "id": "board"
     },
+    "cameras": {
+      "name": {
+        "en": "Traffic cameras",
+        "sv": "Trafikkameror"
+      },
+      "height": 360,
+      "transparent": false,
+      "settings": [
+        {
+          "id": "camera1",
+          "type": "autocomplete",
+          "title": {
+            "en": "Camera 1",
+            "sv": "Kamera 1"
+          }
+        },
+        {
+          "id": "camera2",
+          "type": "autocomplete",
+          "title": {
+            "en": "Camera 2",
+            "sv": "Kamera 2"
+          }
+        },
+        {
+          "id": "camera3",
+          "type": "autocomplete",
+          "title": {
+            "en": "Camera 3",
+            "sv": "Kamera 3"
+          }
+        },
+        {
+          "id": "camera4",
+          "type": "autocomplete",
+          "title": {
+            "en": "Camera 4",
+            "sv": "Kamera 4"
+          }
+        },
+        {
+          "id": "show_incidents",
+          "type": "checkbox",
+          "title": {
+            "en": "Mark cameras with traffic messages nearby",
+            "sv": "Markera kameror med trafikmeddelanden i närheten"
+          },
+          "value": true
+        }
+      ],
+      "api": {
+        "getCameras": {
+          "method": "GET",
+          "path": "/cameras"
+        }
+      },
+      "id": "cameras"
+    },
     "commute": {
       "name": {
         "en": "Commute",
@@ -1900,6 +2765,87 @@
       },
       "id": "commute"
     },
+    "ferry": {
+      "name": {
+        "en": "Road ferry",
+        "sv": "Vägfärja"
+      },
+      "height": 320,
+      "transparent": false,
+      "settings": [
+        {
+          "id": "route",
+          "type": "autocomplete",
+          "title": {
+            "en": "Ferry route",
+            "sv": "Färjeled"
+          }
+        },
+        {
+          "id": "rows",
+          "type": "number",
+          "title": {
+            "en": "Departures per direction",
+            "sv": "Avgångar per riktning"
+          },
+          "value": 3,
+          "min": 1,
+          "max": 6
+        }
+      ],
+      "api": {
+        "getFerry": {
+          "method": "GET",
+          "path": "/ferry"
+        }
+      },
+      "id": "ferry"
+    },
+    "leave": {
+      "name": {
+        "en": "Time to leave",
+        "sv": "Dags att gå"
+      },
+      "height": 300,
+      "transparent": false,
+      "settings": [
+        {
+          "id": "source",
+          "type": "autocomplete",
+          "title": {
+            "en": "Commute or departure board",
+            "sv": "Pendling eller avgångstavla"
+          }
+        },
+        {
+          "id": "margin",
+          "type": "number",
+          "title": {
+            "en": "Safety margin (minutes)",
+            "sv": "Säkerhetsmarginal (minuter)"
+          },
+          "value": 2,
+          "min": 0,
+          "max": 15
+        },
+        {
+          "id": "show_next",
+          "type": "checkbox",
+          "title": {
+            "en": "Show the next two trips",
+            "sv": "Visa de två nästa resorna"
+          },
+          "value": true
+        }
+      ],
+      "api": {
+        "getLeave": {
+          "method": "GET",
+          "path": "/leave"
+        }
+      },
+      "id": "leave"
+    },
     "nearby": {
       "name": {
         "en": "Departures near me",
@@ -1947,6 +2893,22 @@
         }
       },
       "id": "nearby"
+    },
+    "usage": {
+      "name": {
+        "en": "Trafiklab usage",
+        "sv": "Trafiklab-användning"
+      },
+      "height": 300,
+      "transparent": false,
+      "settings": [],
+      "api": {
+        "getUsage": {
+          "method": "GET",
+          "path": "/usage"
+        }
+      },
+      "id": "usage"
     }
   },
   "capabilities": {

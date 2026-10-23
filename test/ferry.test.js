@@ -32,7 +32,7 @@ test('ferry: next departure, time to leave once, disruption alerts only for new 
   dev.homey = {
     clock: { getTimezone: () => TZ }, settings: { get: () => 'KEY' },
     __: (k) => ({ 'ferry.leaveIn': 'Leave in {{n}} min for', 'ferry.leaveNow': 'Leave now for', 'ferry.none': 'none' }[k] || k),
-    flow: { getDeviceTriggerCard: (id) => ({ trigger: async (d, tokens) => { d.triggered.push([id, tokens.text]); } }) },
+    flow: { getDeviceTriggerCard: (id) => ({ trigger: async (d, tokens, state) => { if (id === 'departure_in') (d.inTriggered = d.inTriggered || []).push(state.minutes); else d.triggered.push([id, tokens.text]); } }) },
     setInterval: () => 0, clearInterval: () => {}, setTimeout: () => 0,
   };
   Object.assign(dev, { routeId: 28, harborId: 55, deps: [], messages: [], lastFetch: 0, lastMsg: 0, fired: {}, seenMsgs: null });

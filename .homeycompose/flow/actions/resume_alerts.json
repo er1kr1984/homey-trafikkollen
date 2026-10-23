@@ -1,0 +1,28 @@
+{
+  "title": {
+    "en": "Resume commute alerts",
+    "sv": "Återuppta pendlingslarm"
+  },
+  "titleFormatted": {
+    "en": "Resume alerts for [[commute]]",
+    "sv": "Återuppta larm för [[commute]]"
+  },
+  "hint": {
+    "en": "Ends a pause made with \"Pause commute alerts\" straight away.",
+    "sv": "Avslutar en paus från \"Pausa pendlingslarm\" direkt."
+  },
+  "args": [
+    {
+      "name": "commute",
+      "type": "autocomplete",
+      "title": {
+        "en": "Commute",
+        "sv": "Pendling"
+      },
+      "placeholder": {
+        "en": "Pick a commute",
+        "sv": "Välj en pendling"
+      }
+    }
+  ]
+}

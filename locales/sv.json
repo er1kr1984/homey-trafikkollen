@@ -152,9 +152,35 @@
       "alertDelay": "Larma när en avgång är minst",
       "alertDelayUnit": "min sen"
     },
-    "credits": "Data: Trafiklab.se (CC BY 4.0), Trafikverket (öppna data), SMHI (CC BY 4.0) och © OpenStreetMap-bidragsgivare (adressökning). Trafikkollen är inte knuten till dem."
+    "credits": "Data: Trafiklab.se (CC BY 4.0), Trafikverket (öppna data), SMHI (CC BY 4.0) och © OpenStreetMap-bidragsgivare (adressökning). Trafikkollen är inte knuten till dem.",
+    "usage": {
+      "title": "3. Trafiklab-användning",
+      "intro": "Varje avgångstavla, pendling och sökning hämtar data från Trafiklab. Din gratisnyckel har en gräns, så här ser du hur mycket appen använder.",
+      "month": "Den här månaden",
+      "of": "{{total}} av {{monthly}} anrop ({{pct}} %)",
+      "today": "I dag: {{n}}",
+      "minute": "Senaste minuten: {{n}} av {{max}}",
+      "projected": "Väntat vid månadens slut: cirka {{n}}",
+      "projectedSoon": "Väntat vid månadens slut: visas efter några timmar",
+      "kinds": "Används av: avgångstavlor {{boards}} · pendlingar {{commutes}} · hållplatssökningar {{search}} · hållplatslistan {{stoplist}}",
+      "limited": "Trafiklab svarade \"för många anrop\" {{n}} gång(er) den här månaden, senast {{time}}. Appen väntar och försöker igen själv.",
+      "previous": "Förra månaden ({{month}}): {{n}} anrop",
+      "allowance": "Din månadsgräns",
+      "allowanceHint": "Gratisnivån Brons tillåter 100 000 anrop per månad och 25 per minut. Om du har uppgraderat nyckeln på trafiklab.se skriver du dess månadsgräns här. Du får en Homey-notis vid 80 % och 100 %.",
+      "save": "Spara",
+      "saved": "Sparat.",
+      "refresh": "Uppdatera",
+      "note": "Det här räknar bara det som appen på den här Homeyn frågar efter. Om du använder samma nyckel någon annanstans visar trafiklab.se (Mina projekt → ditt projekt) totalen.",
+      "tvTitle": "Trafikverket (vägar, kameror, tåg, färjor)",
+      "tvTotal": "{{total}} anrop den här månaden",
+      "tvKinds": "Används av: trafikmeddelanden {{messages}} · väglag {{conditions}} · kameralistor {{cameras}} · kamerabilder {{images}} · hastighet {{speed}} · tåg {{trains}} · färjor {{ferries}} · vägväder {{weather}}",
+      "tvNote": "Trafikverket har ingen fast månadsgräns. De hör bara av sig om en app skickar långt mer än normalt, och den här appen ligger långt under det."
+    }
   },
   "widget": {
+    "inHours": "om {{h}} h {{m}} min",
+    "nextCommute": "Nästa pendling",
+    "nextLeave": "nästa resa {{day}} {{time}}",
     "locale": "sv-SE",
     "loading": "Laddar…",
     "publicTransport": "Kollektivt",
@@ -175,7 +201,7 @@
     "Cancelled": "Inställd",
     "atWork": "framme",
     "changeAt": "{{n}} min byte vid {{stop}}",
-    "noConnections": "Inga resor hittades de närmaste två timmarna",
+    "noConnections": "Inga resor hittades de närmaste 4 timmarna",
     "road": "Väglag",
     "messages": "{{n}} meddelande(n) på {{roads}}",
     "until": "till {{date}}",
@@ -226,10 +252,19 @@
       "track": "spår {{n}}"
     },
     "reportedAt": "rapporterad {{time}}",
-    "changedAt": "uppdaterad {{time}}"
+    "changedAt": "uppdaterad {{time}}",
+    "fetching": "Hämtar avgångar…"
   },
   "road": {
-    "noCamera": "Det finns ingen trafikkamera som heter \"{{name}}\". Prova ett kortare namn, till exempel bara orten. Eller öppna enhetens inställningar och tryck på Reparera för att välja i en lista med bilder."
+    "noTestIncident": "Det finns inga trafikmeddelanden på dina vägar just nu, så det finns inget att testa med.",
+    "noCamera": "Det finns ingen trafikkamera som heter \"{{name}}\". Prova ett kortare namn, till exempel bara orten. Eller öppna enhetens inställningar och tryck på Reparera för att välja i en lista med bilder.",
+    "status": "{{n}} trafikmeddelande(n) på {{roads}}: {{what}}. Väglag: {{cond}}.",
+    "statusNone": "Inga trafikmeddelanden på {{roads}}. Väglag: {{cond}}.",
+    "slipperyNow": "Halt väglag!",
+    "at": "vid",
+    "allRoads": "vägarna",
+    "item": "{{type}} på {{road}} vid {{place}}",
+    "itemNoPlace": "{{type}} på {{road}}"
   },
   "camera": {
     "title": "Välj trafikkamera",
@@ -242,12 +277,16 @@
     "clear": "Spelar ingen roll: använd kameran närmast området",
     "saved": "Sparat.",
     "label": "Trafikkamera (valfritt)",
-    "km": "{{km}} km bort"
+    "km": "{{km}} km bort",
+    "notFound": "Ingen trafikkamera som heter \"{{name}}\" hittades."
   },
   "flow": {
     "noCommute": "Den pendlingen finns inte längre. Välj en annan i flödeskortet.",
     "leaveText": "Gå om {{n}} min: {{legs}}, framme {{arrive}}",
-    "leaveCarText": "Åk med bil om {{n}} min, framme {{arrive}}"
+    "leaveCarText": "Åk med bil om {{n}} min, framme {{arrive}}",
+    "lateText": "{{name}}: du blir cirka {{n}} min sen (framme {{arrive}}, ville vara framme {{by}}).",
+    "clearedText": "{{name}}: inga problem längre.",
+    "allCommutes": "Alla pendlingar"
   },
   "nearby": {
     "noLocation": "Din Homey har ingen plats ännu. Ställ in den i Homey-appen: Mer → Inställningar → Plats."
@@ -265,6 +304,54 @@
     "none": "Inga avgångar de närmaste 6 timmarna",
     "leaveIn": "Gå om {{n}} min till",
     "leaveNow": "Gå nu till"
+  },
+  "ferryWidget": {
+    "pick": "Välj en färjeled i widgetens inställningar.",
+    "from": "Från {{name}}",
+    "inMin": "om {{n}} min",
+    "now": "nu",
+    "none": "Inga avgångar de närmaste 6 timmarna",
+    "updated": "Trafikverket · uppdaterad {{time}}"
+  },
+  "device": {
+    "noneHour": "Inga avgångar inom en timme",
+    "noneReachable": "Inga avgångar du hinner till inom en timme"
+  },
+  "usage": {
+    "warn80": "Trafikkollen har använt {{total}} av dina {{monthly}} Trafiklab-anrop den här månaden (80 %). Avgångarna kan sluta uppdateras om de tar slut; se appinställningarna.",
+    "warnFull": "Trafikkollen har använt alla {{monthly}} Trafiklab-anrop för den här månaden. Avgångarna kanske inte uppdateras förrän nästa månad; se appinställningarna."
+  },
+  "leave": {
+    "title": "Dags att gå",
+    "pick": "Välj en pendling eller avgångstavla i widgetens inställningar.",
+    "min": "min",
+    "toLeave": "kvar",
+    "goNow": "Gå nu!",
+    "hours": "{{h}} h {{m}} min",
+    "leaveAt": "Gå {{time}}",
+    "departs": "avgår {{time}}",
+    "from": "från {{place}}",
+    "walk": "{{n}} min gång",
+    "late": "Realtid säger {{n}} min sen, men vi räknar ändå med {{time}}: bussar och tåg kan ta igen tid.",
+    "early": "Går {{n}} min tidigt enligt realtid.",
+    "noRealtime": "Ingen realtid för den här avgången: tidtabellens tid.",
+    "cancelled": "{{line}} {{time}} är inställd.",
+    "none": "Inga avgångar hittades just nu.",
+    "stale": "Tiderna är {{n}} min gamla. Kontrollera tidtabellen om du har bråttom.",
+    "stop": "Kunde inte uppdatera på {{n}} min, så ingen nedräkning. Kontrollera tidtabellen själv.",
+    "then": "Sedan",
+    "margin": "Inkl. {{walk}} min gång + {{margin}} min marginal",
+    "guide": "Vägledning, ingen garanti: håll alltid koll på hållplatsen.",
+    "kindBoard": "Avgångstavla",
+    "kindCommute": "Pendling",
+    "carOnly": "Den här pendlingen är bara med bil. Välj en pendling med kollektivtrafik eller en avgångstavla.",
+    "loading": "Hämtar avgångar…"
+  },
+  "cameras": {
+    "pick": "Välj upp till fyra kameror i widgetens inställningar (skriv en del av namnet, t.ex. \"E4\" eller en ort).",
+    "missing": "Kameran \"{{name}}\" hittades inte. Välj den igen i widgetens inställningar.",
+    "tapHint": "Tryck på en bild för att göra den större",
+    "source": "Bilder: Trafikverket · uppdaterad {{time}}"
   },
   "errors": {
     "noTrafiklabKey": "Lägg först in din gratis Trafiklab-nyckel: i Homey-appen, gå till Appar > Trafikkollen > Konfigurera och följ stegen.",

@@ -9,6 +9,9 @@ const geo = require('./lib/geo');
 const D = require('./lib/departures');
 const P = require('./lib/plan');
 const A = require('./lib/alerts');
+const { Usage, tvKindOf, TV_KINDS } = require('./lib/usage');
+const L = require('./lib/leave');
+const ferries = require('./lib/ferries');
 
 /** Widget setting value for a board device: the stop id, plus the device's uid when the stop can be added more than once. */
 const boardKey = (d) => (d.getData().uid ? `${d.getData().id}#${d.getData().uid}` : d.getData().id);
@@ -39,14 +42,248 @@ class TrafikApp extends Homey.App {
     this.stopIndex = new StopIndex({
       key: () => this.homey.settings.get('trafiklab_key'), file: '/userdata/stops.json', log: (...a) => this.log(...a),
     });
+    this.homey.dashboards.getWidget('leave').registerSettingAutocompleteListener('source', async (query) => this.leaveSources(query));
+    this.homey.dashboards.getWidget('ferry').registerSettingAutocompleteListener('route', async (query) => {
+      const q = String(query || '').toLowerCase();
+      const home = this.home();
+      const list = await ferries.routes(this.homey.settings.get('trafikverket_key'));
+      return list.filter((r) => `${r.name} ${r.short || ''} ${r.harbors.map((h) => h.name).join(' ')}`.toLowerCase().includes(q))
+        .map((r) => ({ r, km: home && r.point ? tv.distanceKm(home, r.point) : null }))
+        .sort((a, b) => (a.km ?? 1e9) - (b.km ?? 1e9)).slice(0, 25)
+        .map(({ r, km }) => ({ name: r.name, id: String(r.id), description: `${r.harbors.map((h) => h.name).join(' ⇄ ')}${km != null ? ` · ${Math.round(km)} km` : ''}` }));
+    });
+    for (const n of [1, 2, 3, 4]) {
+      this.homey.dashboards.getWidget('cameras').registerSettingAutocompleteListener(`camera${n}`, async (query) => {
+        if (!String(query || '').trim()) return [];
+        const list = await tv.searchCameras(this.homey.settings.get('trafikverket_key'), query, this.home(), 10);
+        return list.map((c) => ({ name: c.name, id: c.name, description: c.km != null ? `${c.km} km` : '' }));
+      });
+    }
     this.homey.dashboards.getWidget('commute').registerSettingAutocompleteListener('commute', async (query) => {
       const q = String(query || '').toLowerCase();
       return this.commuteConfigs().filter((c) => c.name.toLowerCase().includes(q)).map((c) => ({ name: c.name, id: c.id }));
     });
     this.initCommuteFlows();
+    this.initMoreFlows();
     this.fired = new Map(); // "<card>:<commute>:<trip or day>" -> time, so each alert fires once
     this.watchTimer = this.homey.setInterval(() => this.watchCommutes().catch((e) => this.error('commute watch:', e.message)), 60 * 1000);
+    this.initUsage();
+    // warm the commute caches shortly after start (one at a time), so the first widget load doesn't wait
+    this.homey.setTimeout(async () => {
+      let list = [];
+      try { list = this.commuteConfigs(); } catch (e) { return; }
+      for (const c of list) await this.commutes.get(c).catch(() => {});
+    }, 20000);
     this.log('Trafikkollen started');
+  }
+
+  /** Count Trafiklab requests (settings page shows them); warn once at 80 % and 100 % of the monthly allowance. */
+  initUsage() {
+    const S = this.homey.settings;
+    this.usage = new Usage({ load: () => S.get('trafiklab_usage'), save: (v) => S.set('trafiklab_usage', v), tz: () => this.tz });
+    // a different key has its own allowance: start counting again
+    const tail = () => String(S.get('trafiklab_key') || '').slice(-6);
+    if (this.usage.data.key === undefined) this.usage.data.key = tail();
+    S.on('set', (k) => {
+      if (k !== 'trafiklab_key' || tail() === this.usage.data.key) return;
+      this.usage.data = { key: tail() };
+      this.usage.dirty = true;
+    });
+    tl.onRequest((path, o) => this.usage.count(path, o));
+    // Trafikverket has no fixed quota, but count it the same way so people can see what the app does
+    this.tvUsage = new Usage({
+      load: () => S.get('trafikverket_usage'), save: (v) => S.set('trafikverket_usage', v), tz: () => this.tz, kindOf: tvKindOf, kinds: TV_KINDS,
+    });
+    tv.onRequest((type) => this.tvUsage.count(type));
+    this.usageTimer = this.homey.setInterval(() => this.checkUsage().catch((e) => this.error('usage:', e.message)), 2 * 60 * 1000);
+  }
+
+  get allowance() {
+    return { monthly: Number(this.homey.settings.get('trafiklab_monthly')) || 100000, perMinute: 25 };
+  }
+
+  async checkUsage() {
+    // "Trafiklab usage reaches N %": fire for every percentage passed since the last check
+    const monthly = this.allowance.monthly;
+    const pct = monthly ? (this.usage.data.total || 0) / monthly * 100 : 0;
+    const prev = this.usage.data.lastPct;
+    if (prev !== undefined && pct > prev) {
+      await this.usageCard.trigger({ percent: Math.round(pct * 10) / 10, total: this.usage.data.total, monthly }, { from: prev, to: pct })
+        .catch((e) => this.error('usage trigger:', e.message));
+    }
+    if (prev !== pct) { this.usage.data.lastPct = pct; this.usage.dirty = true; }
+    const step = this.usage.threshold(this.allowance.monthly);
+    this.usage.flush();
+    this.tvUsage.flush();
+    if (!step) return;
+    const s = this.usageSummary();
+    await this.homey.notifications.createNotification({
+      excerpt: this.t(step >= 100 ? 'usage.warnFull' : 'usage.warn80', { total: s.total, monthly: s.monthly }),
+    });
+  }
+
+  /** Trafiklab usage (top level, as before) plus Trafikverket's under `trafikverket` (no fixed limit, so no monthly/percent). */
+  usageSummary() {
+    const t = this.tvUsage.summary({ monthly: null, perMinute: null });
+    return {
+      ...this.usage.summary(this.allowance),
+      trafikverket: {
+        month: t.month, total: t.total, today: t.today, lastMinute: t.lastMinute, projected: t.projected, kinds: t.kinds, previous: t.previous,
+      },
+    };
+  }
+
+  async onUninit() {
+    if (this.usage) this.usage.flush();
+    if (this.tvUsage) this.tvUsage.flush();
+  }
+
+  /** Wait at most `ms` for a slow first fetch; the widget then shows "loading" and asks again soon (the fetch carries on). */
+  async quick(promise, ms = 8000) {
+    let timer;
+    const late = new Promise((ok) => { timer = this.homey.setTimeout(() => ok({ loading: true }), ms); });
+    promise.catch(() => {}); // a late failure is kept in the cache, not thrown here
+    try { return await Promise.race([promise, late]); } finally { this.homey.clearTimeout(timer); }
+  }
+
+  /** Commutes and departure boards for the "time to leave" widget's source picker. */
+  leaveSources(query) {
+    const q = String(query || '').toLowerCase();
+    const boards = [...this.homey.drivers.getDriver('departures').getDevices(), ...this.homey.drivers.getDriver('ferry').getDevices()]
+      .map((d) => ({ name: d.getName(), id: `b:${boardKey(d)}`, description: this.homey.__('leave.kindBoard') }));
+    let commutes = [];
+    try {
+      commutes = this.commuteConfigs().filter((c) => c.mode !== 'car')
+        .map((c) => ({ name: c.name, id: `c:${c.id}`, description: this.homey.__('leave.kindCommute') }));
+    } catch (e) { /* invalid commute settings: offer boards only */ }
+    return [...commutes, ...boards].filter((x) => x.name.toLowerCase().includes(q));
+  }
+
+  /**
+   * "Time to leave" widget: a cautious countdown (see lib/leave.js) for a commute ("c:<id>") or a board ("b:<key>").
+   * Data is refreshed when a trip is close (every ~2.5 min within 30 min of leaving), otherwise the normal caches apply.
+   */
+  async leave(source, margin) {
+    const now = Date.now();
+    const m = Math.max(0, Math.min(15, Number.isFinite(+margin) ? +margin : 2));
+    const src = String(source || '');
+    const soon = (trips, walk) => trips.some((t) => !t.canceled && t.dep && t.dep.scheduled - walk * 60000 - now < 30 * 60000);
+    if (src.startsWith('b:') || !src) {
+      const devices = [...this.homey.drivers.getDriver('departures').getDevices(), ...this.homey.drivers.getDriver('ferry').getDevices()];
+      const dev = devices.find((d) => `b:${boardKey(d)}` === src) || (src ? null : devices[0]);
+      if (!dev) throw new Error(this.homey.__(devices.length ? 'errors.boardRemoved' : 'errors.noBoard'));
+      const b = dev.board(20);
+      const toTrip = (d) => ({ dep: { scheduled: d.scheduled, expected: d.expected, realtime: d.realtime, delayMin: d.delayMin }, canceled: d.canceled, line: d.line, mode: d.mode, direction: d.direction, platform: d.platform });
+      if ((!b.updated || now - b.updated > 150000) && soon(b.departures.map(toTrip), b.walk) && now - (dev.leaveRefresh || 0) > 120000) {
+        dev.leaveRefresh = now; // background: the widget asks again within 30 s
+        dev.refresh().catch((e) => this.error('leave refresh:', e.message));
+      }
+      const t1 = Date.now(); // after any refresh, so the data's age is measured correctly
+      return { name: b.name, kind: 'board', walk: b.walk, margin: m, now: t1, updated: b.updated, ...L.plan({ trips: b.departures.map(toTrip), now: t1, walk: b.walk, margin: m, updated: b.updated }) };
+    }
+    const id = src.replace(/^c:/, '');
+    const cfg = this.commuteConfigs().find((c) => c.id === id);
+    if (!cfg) throw new Error(this.homey.__('errors.commuteRemoved'));
+    if (cfg.mode === 'car') throw new Error(this.homey.__('leave.carOnly'));
+    const toTrips = (journeys) => (journeys || []).map((j) => ({
+      dep: j.legs[0].dep, canceled: j.canceled, line: j.legs.map((l) => l.line).join(' + '), mode: j.legs[0].mode,
+      direction: j.legs[0].direction, platform: j.legs[0].platform, arrive: j.arrive, from: j.legs[0].from,
+    }));
+    // answer at once with what we have; when a trip is close and the data is getting old, fetch in the background
+    // (the widget asks again within 30 s; the countdown shows the data's age and stops if it gets too old)
+    const data = await this.quick(this.commutes.get(cfg, { swr: true }));
+    if (data.loading) return { name: cfg.name, kind: 'commute', loading: true, now: Date.now() };
+    const t = data.transit;
+    if (t && !t.error && (now - t.updated > 15 * 60000 || (now - t.updated > 150000 && soon(toTrips(t.journeys), cfg.walk_to_stop)))) {
+      this.commutes.kickTransit(cfg);
+    }
+    const tr = data.transit;
+    if (tr && tr.error && !(data.next && data.next.journeys && data.next.journeys.length)) throw new Error(this.friendly(tr.error));
+    const trips = tr && !tr.error && tr.journeys.length ? toTrips(tr.journeys) : toTrips(data.next && !data.next.error ? data.next.journeys : []);
+    const updated = tr && !tr.error && tr.journeys.length ? tr.updated : (data.next && data.next.updated) || (tr && tr.updated);
+    const t1 = Date.now(); // after any refresh, so the data's age is measured correctly
+    return {
+      name: cfg.name, kind: 'commute', walk: cfg.walk_to_stop, margin: m, now: t1, updated, from: tr && tr.origin,
+      ...L.plan({ trips, now: t1, walk: cfg.walk_to_stop, margin: m, updated }),
+    };
+  }
+
+  /** Ferry widget: a whole road-ferry route, both directions, plus disruption messages. Cached 2 min per route. */
+  async ferryRoute(routeId, rows = 3) {
+    const key = this.homey.settings.get('trafikverket_key');
+    if (!key) throw new Error(this.homey.__('ferry.noKey'));
+    const route = (await ferries.routes(key)).find((r) => String(r.id) === String(routeId));
+    if (!route) throw new Error(this.homey.__(routeId ? 'ferry.gone' : 'ferryWidget.pick'));
+    this.ferryCache = this.ferryCache || new Map();
+    const hit = this.ferryCache.get(route.id);
+    let base = hit ? hit.value : null;
+    const fetchRoute = async () => {
+      const sides = route.harbors.slice(0, 2);
+      const [deps, messages] = await Promise.all([
+        Promise.all(sides.map((h) => ferries.departures(key, route.id, h.id).catch((e) => ({ error: this.friendly(e) })))),
+        ferries.disruptions(key, route).catch(() => []),
+      ]);
+      const value = {
+        name: route.name,
+        directions: sides.map((h, i) => ({
+          from: h.name, to: (sides[1 - i] || {}).name || '',
+          error: deps[i].error || null,
+          departures: deps[i].error ? [] : deps[i].map((d) => ({ time: d.time, to: d.to, info: d.info })),
+        })),
+        messages: messages.map((m) => ({ text: m.text, severity: m.severity })),
+        updated: Date.now(),
+      };
+      this.ferryCache.set(route.id, { at: Date.now(), value });
+      return value;
+    };
+    if (!hit) base = await fetchRoute();
+    else if (Date.now() - hit.at >= 2 * 60000 && !hit.busy) { // old: answer now, fetch again in the background
+      hit.busy = true;
+      fetchRoute().catch(() => {}).finally(() => { hit.busy = false; });
+    }
+    const now = Date.now();
+    const n = Math.max(1, Math.min(6, Number(rows) || 3));
+    return {
+      ...base, now,
+      directions: base.directions.map((d) => ({ ...d, departures: d.departures.filter((x) => x.time > now - 60000).slice(0, n) })),
+    };
+  }
+
+  /** Camera wall widget: camera names typed/picked in the widget settings -> pictures, plus messages near each camera. */
+  async cameraWall(names, withIncidents = true) {
+    const key = this.homey.settings.get('trafikverket_key');
+    const home = this.home();
+    this.wallCache = this.wallCache || new Map(); // "name" -> { at, value }
+    const one = async (name) => {
+      const hit = this.wallCache.get(name);
+      if (hit && Date.now() - hit.at < 5 * 60000) return hit.value;
+      if (hit && hit.value && !hit.busy) { // old: answer now, fetch again in the background
+        hit.busy = true;
+        fetchOne(name).catch(() => {}).finally(() => { hit.busy = false; });
+        return hit.value;
+      }
+      if (hit && hit.value) return hit.value;
+      return fetchOne(name);
+    };
+    const fetchOne = async (name) => {
+      const cam = (await tv.searchCameras(key, name, home, 1))[0];
+      if (!cam) return { name, missing: true };
+      let incident = null;
+      if (withIncidents && cam.point) {
+        // only what is news: accidents, big disruptions, or anything reported in the last 18 hours
+        // (long-running roadworks would otherwise frame the same camera for months)
+        const fresh = (i) => { const t = Date.parse(i.reported || i.start || ''); return Number.isFinite(t) && Date.now() - t < 18 * 3600000; };
+        const near = (await tv.incidents(key, cam.point.lon, cam.point.lat, 1.5).catch(() => []))
+          .filter((i) => /olycka/i.test(i.type || '') || (i.severity || 0) >= 4 || fresh(i))
+          .sort((a, b) => (/olycka/i.test(b.type) - /olycka/i.test(a.type)) || (b.severity || 0) - (a.severity || 0));
+        if (near[0]) incident = { type: near[0].type, road: near[0].road, message: near[0].message, severity: near[0].severity || 0, accident: /olycka/i.test(near[0].type || '') };
+      }
+      const value = { name: cam.name, url: cam.photoUrl, incident };
+      this.wallCache.set(name, { at: Date.now(), value });
+      return value;
+    };
+    const list = [].concat(names || []).map((n) => String(n || '').trim()).filter(Boolean).slice(0, 4);
+    return { now: Date.now(), cameras: await Promise.all(list.map((n) => one(n).catch((e) => ({ name: n, error: this.friendly(e) })))) };
   }
 
   /** Widget data for the departure board with Trafiklab id `id` (falls back to the first board). */
@@ -118,6 +355,121 @@ class TrafikApp extends Homey.App {
       });
   }
 
+  /** Flow cards added in 1.2: departures, cameras, pausing, commute day, problems, car vs public transport, usage. */
+  initMoreFlows() {
+    const F = this.homey.flow;
+    const list = async (query) => {
+      const q = String(query || '').toLowerCase();
+      let all = [];
+      try { all = this.commuteConfigs(); } catch (e) { /* invalid commute settings */ }
+      return all.filter((c) => c.name.toLowerCase().includes(q)).map((c) => ({ name: c.name, id: c.id }));
+    };
+    const cfgOf = (arg) => {
+      const cfg = this.commuteConfigs().find((c) => c.id === (arg && arg.id));
+      if (!cfg) throw new Error(this.homey.__('flow.noCommute'));
+      return cfg;
+    };
+    const same = async (args, state) => args.commute && args.commute.id === state.id;
+
+    // departure boards and ferries
+    F.getActionCard('next_departure').registerRunListener(async ({ device }) => device.nextDeparture());
+    F.getConditionCard('next_within').registerRunListener(async ({ device, minutes }) => {
+      const m = device.nextMinutes();
+      return m !== null && m <= (Number(minutes) || 0);
+    });
+    F.getDeviceTriggerCard('departure_in').registerRunListener(async (args, state) => Number(args.minutes) === state.minutes);
+
+    // roads and cameras
+    F.getActionCard('road_status').registerRunListener(async ({ device }) => device.roadStatus());
+    F.getActionCard('camera_picture')
+      .registerArgumentAutocompleteListener('camera', async (query) => {
+        if (!String(query || '').trim()) return [];
+        const found = await tv.searchCameras(this.homey.settings.get('trafikverket_key'), query, this.home(), 10);
+        return found.map((c) => ({ name: c.name, id: c.name, description: c.km != null ? `${c.km} km` : '' }));
+      })
+      .registerRunListener(async ({ camera }) => this.cameraPicture(camera && (camera.id || camera.name)));
+
+    // pausing alerts
+    const withAll = async (query) => [{ name: this.homey.__('flow.allCommutes'), id: '*' }, ...(await list(query))];
+    F.getActionCard('pause_alerts').registerArgumentAutocompleteListener('commute', withAll)
+      .registerRunListener(async ({ commute, period }) => this.pauseAlerts(commute && commute.id, Number(period) || 0));
+    F.getActionCard('resume_alerts').registerArgumentAutocompleteListener('commute', withAll)
+      .registerRunListener(async ({ commute }) => this.pauseAlerts(commute && commute.id, -1));
+
+    // commute conditions
+    F.getConditionCard('commute_day').registerRunListener(async ({ when }) => {
+      const day = D.localIso(Date.now() + (when === 'tomorrow' ? 86400000 : 0), this.tz).slice(0, 10);
+      return D.isCommuteDay(day, this.tz);
+    });
+    F.getConditionCard('commute_has_problem').registerArgumentAutocompleteListener('commute', list)
+      .registerRunListener(async ({ commute }) => {
+        const cfg = cfgOf(commute);
+        const data = await this.commutes.get(cfg, { swr: true });
+        return A.findIssues(data, cfg, { lang: this.lang, tz: this.tz }).length > 0;
+      });
+    F.getConditionCard('car_faster').registerArgumentAutocompleteListener('commute', list)
+      .registerRunListener(async ({ commute }) => {
+        const cfg = cfgOf(commute);
+        const data = await this.commutes.get(cfg, { swr: true });
+        const now = Date.now();
+        const d = data.drive;
+        if (!d || d.error || !d.minutes) return false;
+        const carAt = now + d.minutes * 60000;
+        const t = data.transit;
+        const best = t && !t.error ? t.journeys.find((j) => !j.canceled && j.leave >= now) : null;
+        return !best || carAt < best.arrive;
+      });
+
+    // commute triggers fired by watchCommutes()
+    this.lateCard = F.getTriggerCard('commute_will_be_late');
+    this.lateCard.registerArgumentAutocompleteListener('commute', list).registerRunListener(same);
+    this.clearedCard = F.getTriggerCard('commute_problem_cleared');
+    this.clearedCard.registerArgumentAutocompleteListener('commute', list).registerRunListener(same);
+
+    // Trafiklab usage
+    this.usageCard = F.getTriggerCard('usage_reached');
+    this.usageCard.registerRunListener(async (args, state) => Number(args.percent) > state.from && Number(args.percent) <= state.to);
+  }
+
+  /** A still from a traffic camera as a Flow image (the last few are kept for Flows that use them a bit later). */
+  async cameraPicture(name) {
+    const key = this.homey.settings.get('trafikverket_key');
+    const cam = (await tv.searchCameras(key, name, this.home(), 1))[0];
+    if (!cam) throw new Error(this.t('camera.notFound', { name }));
+    const url = cam.photoUrl + (cam.photoUrl.includes('?') ? '&' : '?') + 'type=fullsize';
+    tv.note('image');
+    const res = await require('./lib/http').request(url, { timeout: 20000 });
+    if (!res.ok) { res.stream.resume(); throw new Error(`Camera HTTP ${res.status}`); }
+    const chunks = [];
+    for await (const c of res.stream) chunks.push(c);
+    const jpeg = Buffer.concat(chunks);
+    const image = await this.homey.images.createImage();
+    image.setStream(async (stream) => { stream.end(jpeg); });
+    this.pictures = (this.pictures || []).concat(image);
+    while (this.pictures.length > 5) await this.pictures.shift().unregister().catch(() => {});
+    return { image, camera: cam.name };
+  }
+
+  /** Pause a commute's alerts ('*' = all) until the end of today + `days` (-1 = resume now). */
+  pauseAlerts(id, days) {
+    if (!id) throw new Error(this.homey.__('flow.noCommute'));
+    const paused = { ...(this.homey.settings.get('paused') || {}) };
+    if (days < 0) delete paused[id];
+    else {
+      const day = D.localIso(Date.now() + days * 86400000, this.tz).slice(0, 10);
+      paused[id] = D.localToEpoch(`${day}T23:59`, this.tz) + 60000;
+    }
+    for (const [k, until] of Object.entries(paused)) if (until < Date.now()) delete paused[k];
+    this.homey.settings.set('paused', paused);
+    this.log(days < 0 ? 'alerts resumed' : 'alerts paused', id, days < 0 ? '' : new Date(paused[id]).toISOString());
+  }
+
+  isPaused(cfg) {
+    const paused = this.homey.settings.get('paused') || {};
+    const now = Date.now();
+    return (paused['*'] || 0) > now || (paused[cfg.id] || 0) > now;
+  }
+
   /** Once a minute: "time to leave" in commute hours, engine heater on commute days. */
   async watchCommutes() {
     let configs = [];
@@ -127,6 +479,7 @@ class TrafikApp extends Homey.App {
     for (const [k, t] of this.fired) if (now - t > 26 * 3600000) this.fired.delete(k);
     for (const cfg of configs) {
       if (!cfg.arrive_by && !cfg.alerts) continue;
+      if (this.isPaused(cfg)) continue; // "Pause commute alerts" 
       const commuteDay = D.isActive(now, tz, [], cfg.weekdays_only);
       if (!commuteDay) continue;
       const inHours = D.isActive(now, tz, D.parseWindows(cfg.active_hours), cfg.weekdays_only);
@@ -146,6 +499,14 @@ class TrafikApp extends Homey.App {
         if (cfg.alerts) await this.checkProblems(cfg, data, today);
         const t = data.plan.arriveBy ? data.plan.target : null; // only when planning for the arrive-by time
         if (!t) continue;
+        // "I will be late": no trip gets there by the arrive-by time any more (once a day)
+        if (t.late && !t.car && !this.fired.has(`late:${cfg.id}:${today}`)) {
+          this.fired.set(`late:${cfg.id}:${today}`, now);
+          const minutesLate = Math.max(1, Math.round((t.arrive - data.plan.arriveBy) / 60000));
+          const text = this.t('flow.lateText', { name: cfg.name, n: minutesLate, arrive: D.hhmm(t.arrive, tz), by: D.hhmm(data.plan.arriveBy, tz) });
+          this.log('commute late', text);
+          await this.lateCard.trigger({ text, arrive: D.hhmm(t.arrive, tz), arrive_by: D.hhmm(data.plan.arriveBy, tz), minutes_late: minutesLate }, { id: cfg.id });
+        }
         const left = Math.floor((t.leave - now) / 60000);
         const remind = cfg.remind_before === undefined ? 5 : Number(cfg.remind_before);
         const key = `leave:${cfg.id}:${today}`; // once per commute day
@@ -163,13 +524,25 @@ class TrafikApp extends Homey.App {
 
   /** In commute hours: send new problems (each once a day) to the phone and to the "problem" Flow card. */
   async checkProblems(cfg, data, today) {
-    const issues = A.findIssues(data, cfg, { lang: this.lang, tz: this.tz }).filter((i) => {
+    const all = A.findIssues(data, cfg, { lang: this.lang, tz: this.tz });
+    // "problem resolved": after a warning today, two checks in a row (two minutes) without any problem
+    this.problemState = this.problemState || {};
+    const st = this.problemState[cfg.id] = this.problemState[cfg.id] || { day: null, empty: 0 };
+    if (all.length) st.empty = 0;
+    else if (st.day === today && ++st.empty >= 2) {
+      st.day = null;
+      const text = this.t('flow.clearedText', { name: cfg.name });
+      this.log('commute problem cleared', cfg.name);
+      await this.clearedCard.trigger({ text }, { id: cfg.id });
+    }
+    const issues = all.filter((i) => {
       const key = `problem:${cfg.id}:${today}:${i.key}`;
       if (this.fired.has(key)) return false;
       this.fired.set(key, Date.now());
       return true;
     });
     if (!issues.length) return;
+    st.day = today; st.empty = 0;
     const text = A.summary(cfg.name, issues);
     this.log('commute problem', text);
     if (cfg.alerts_push !== false) await this.homey.notifications.createNotification({ excerpt: `⚠️ ${text}` }).catch((e) => this.error('notification:', e.message));
@@ -191,7 +564,8 @@ class TrafikApp extends Homey.App {
     const list = this.commuteConfigs();
     const cfg = list.find((c) => c.id === id) || (id ? null : list[0]);
     if (!cfg) throw new Error(this.homey.__(list.length ? 'errors.commuteRemoved' : 'errors.noCommute'));
-    const data = await this.commutes.get(cfg);
+    const data = await this.quick(this.commutes.get(cfg, { swr: true }));
+    if (data.loading) return { id: cfg.id, name: cfg.name, loading: true, now: Date.now() };
     const out = { ...data };
     for (const k of ['transit', 'drive', 'weather']) if (out[k] && out[k].error) out[k] = { ...out[k], error: this.friendly(out[k].error) };
     return out;

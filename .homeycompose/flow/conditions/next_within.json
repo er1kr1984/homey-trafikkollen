@@ -1,0 +1,32 @@
+{
+  "title": {
+    "en": "Next departure !{{leaves|does not leave}} within ... min",
+    "sv": "Nästa avgång !{{går|går inte}} inom ... min"
+  },
+  "titleFormatted": {
+    "en": "Next departure !{{leaves|does not leave}} within [[minutes]] min",
+    "sv": "Nästa avgång !{{går|går inte}} inom [[minutes]] min"
+  },
+  "hint": {
+    "en": "Counts from now until the next departure you can still reach (walking time included).",
+    "sv": "Räknar från nu till nästa avgång du hinner till (gångtiden inräknad)."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=departures|ferry"
+    },
+    {
+      "name": "minutes",
+      "type": "number",
+      "min": 0,
+      "max": 240,
+      "step": 1,
+      "placeholder": {
+        "en": "15",
+        "sv": "15"
+      }
+    }
+  ]
+}

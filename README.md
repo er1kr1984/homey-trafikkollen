@@ -82,6 +82,14 @@ Triggers: departure delayed, departure cancelled, time to leave, new road incide
 Conditions: next departure delayed by >= N min, road incidents present, roads slippery. Action: refresh now.
 Triggers only fire during the device's active hours, once per trip, and never for things already true at app start.
 
+## 1.2 additions
+
+**Widgets:** *Time to leave* (a cautious countdown for a commute or departure board: it plans by the earlier of the timetable and the live time, subtracts walking time plus a safety margin, warns when data is older than 5 minutes and stops counting after 15), *Traffic cameras* (up to four cameras; red frame for an accident nearby), *Road ferry* (a whole route, both directions, with disruptions) and *Trafiklab usage*.
+
+**Flow cards:** Get the next departure · Take a picture from a traffic camera · Get the road status · Pause / resume commute alerts · Today/tomorrow is a commute day (weekday, not a Swedish public holiday) · There is a problem on a commute · Next departure leaves within … min · The car is faster than public transport · A departure leaves in … minutes · I will be late for a commute · A commute problem is resolved · Trafiklab usage reaches … %. "A new road incident appears" now includes a picture from the nearest camera, and road devices have a "Send a test incident" card for trying out notification Flows.
+
+**Other:** commute searches look up to four hours ahead in commute hours when nothing leaves sooner, and show the next commute window's first trips outside them; car-only commutes between two addresses; widgets answer at once from cached data while fresh data is fetched in the background; the settings show this app's Trafiklab and Trafikverket requests (Trafiklab's free level allows 100,000 a month and 25 a minute).
+
 ## Quota
 Trafiklab Bronze: 25 calls/min, 100 000/month. One board at 2-min updates in active hours and 10-min outside is ~10-20k/month.
 

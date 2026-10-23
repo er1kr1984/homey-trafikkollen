@@ -1,0 +1,112 @@
+{
+  "title": {
+    "en": "Get the next departure",
+    "sv": "Hämta nästa avgång"
+  },
+  "hint": {
+    "en": "Gives you the next departure you can still reach (walking time included) as tags, for a speaker or a notification. Example: When the front door opens → Get the next departure → Say \"Bus [Line] leaves in [Minutes] minutes\".",
+    "sv": "Ger dig nästa avgång du hinner till (gångtiden inräknad) som taggar, för en högtalare eller en notis. Exempel: När ytterdörren öppnas → Hämta nästa avgång → Säg \"Buss [Linje] går om [Minuter] minuter\"."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=departures|ferry"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "text",
+      "type": "string",
+      "title": {
+        "en": "Departure",
+        "sv": "Avgång"
+      },
+      "example": {
+        "en": "07:42 bus 5 → Centralen, platform A",
+        "sv": "07:42 buss 5 → Centralen, läge A"
+      }
+    },
+    {
+      "name": "line",
+      "type": "string",
+      "title": {
+        "en": "Line",
+        "sv": "Linje"
+      },
+      "example": "5"
+    },
+    {
+      "name": "direction",
+      "type": "string",
+      "title": {
+        "en": "Direction",
+        "sv": "Riktning"
+      },
+      "example": "Centralen"
+    },
+    {
+      "name": "time",
+      "type": "string",
+      "title": {
+        "en": "Departs (expected)",
+        "sv": "Avgår (väntat)"
+      },
+      "example": "07:42"
+    },
+    {
+      "name": "scheduled",
+      "type": "string",
+      "title": {
+        "en": "Departs (timetable)",
+        "sv": "Avgår (tidtabell)"
+      },
+      "example": "07:40"
+    },
+    {
+      "name": "minutes",
+      "type": "number",
+      "title": {
+        "en": "Minutes until it leaves",
+        "sv": "Minuter tills den går"
+      },
+      "example": 9
+    },
+    {
+      "name": "leave_in",
+      "type": "number",
+      "title": {
+        "en": "Minutes until you need to leave",
+        "sv": "Minuter tills du behöver gå"
+      },
+      "example": 4
+    },
+    {
+      "name": "delay",
+      "type": "number",
+      "title": {
+        "en": "Delay (min)",
+        "sv": "Försening (min)"
+      },
+      "example": 2
+    },
+    {
+      "name": "platform",
+      "type": "string",
+      "title": {
+        "en": "Platform / track",
+        "sv": "Läge / spår"
+      },
+      "example": "A"
+    },
+    {
+      "name": "found",
+      "type": "boolean",
+      "title": {
+        "en": "A departure was found",
+        "sv": "En avgång hittades"
+      },
+      "example": true
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "title": {
+    "en": "The car !{{is|is not}} faster than public transport",
+    "sv": "Bilen !{{är|är inte}} snabbare än kollektivtrafiken"
+  },
+  "titleFormatted": {
+    "en": "The car !{{is|is not}} faster than public transport on [[commute]]",
+    "sv": "Bilen !{{är|är inte}} snabbare än kollektivtrafiken på [[commute]]"
+  },
+  "hint": {
+    "en": "Compares arriving by car if you leave now (your normal driving time) with the next public transport trip you can still catch. Needs the car route switched on in the commute.",
+    "sv": "Jämför när du är framme med bil om du åker nu (din vanliga körtid) med nästa kollektivtrafikresa du hinner med. Kräver att bilvägen är påslagen i pendlingen."
+  },
+  "args": [
+    {
+      "name": "commute",
+      "type": "autocomplete",
+      "title": {
+        "en": "Commute",
+        "sv": "Pendling"
+      },
+      "placeholder": {
+        "en": "Pick a commute",
+        "sv": "Välj en pendling"
+      }
+    }
+  ]
+}

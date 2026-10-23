@@ -1,0 +1,56 @@
+{
+  "title": {
+    "en": "Trafiklab usage reaches ... %",
+    "sv": "Trafiklab-användningen når ... %"
+  },
+  "titleFormatted": {
+    "en": "Trafiklab usage reaches [[percent]] % of the monthly allowance",
+    "sv": "Trafiklab-användningen når [[percent]] % av månadsgränsen"
+  },
+  "hint": {
+    "en": "Runs once a month when this app has used this share of your Trafiklab key's monthly allowance (set in the app settings).",
+    "sv": "Körs en gång per månad när appen har använt så här stor del av Trafiklab-nyckelns månadsgräns (ställs in i appinställningarna)."
+  },
+  "args": [
+    {
+      "name": "percent",
+      "type": "number",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "placeholder": {
+        "en": "50",
+        "sv": "50"
+      }
+    }
+  ],
+  "tokens": [
+    {
+      "name": "percent",
+      "type": "number",
+      "title": {
+        "en": "Used (%)",
+        "sv": "Använt (%)"
+      },
+      "example": 52
+    },
+    {
+      "name": "total",
+      "type": "number",
+      "title": {
+        "en": "Requests this month",
+        "sv": "Anrop den här månaden"
+      },
+      "example": 52000
+    },
+    {
+      "name": "monthly",
+      "type": "number",
+      "title": {
+        "en": "Monthly allowance",
+        "sv": "Månadsgräns"
+      },
+      "example": 100000
+    }
+  ]
+}

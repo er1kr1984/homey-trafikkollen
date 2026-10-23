@@ -1,0 +1,69 @@
+{
+  "title": {
+    "en": "I will be late for a commute",
+    "sv": "Jag blir sen på en pendling"
+  },
+  "titleFormatted": {
+    "en": "I will be late for [[commute]]",
+    "sv": "Jag blir sen på [[commute]]"
+  },
+  "hint": {
+    "en": "Runs once a day when no public transport trip gets you there by the commute's \"arrive by\" time any more (live times). Needs an \"arrive by\" time in the commute.",
+    "sv": "Körs en gång per dag när ingen kollektivtrafikresa längre hinner fram till pendlingens \"framme senast\"-tid (realtid). Kräver en \"framme senast\"-tid i pendlingen."
+  },
+  "args": [
+    {
+      "name": "commute",
+      "type": "autocomplete",
+      "title": {
+        "en": "Commute",
+        "sv": "Pendling"
+      },
+      "placeholder": {
+        "en": "Pick a commute",
+        "sv": "Välj en pendling"
+      }
+    }
+  ],
+  "tokens": [
+    {
+      "name": "text",
+      "type": "string",
+      "title": {
+        "en": "Message",
+        "sv": "Meddelande"
+      },
+      "example": {
+        "en": "Home → Work: you will be about 12 min late (there at 08:12, wanted 08:00).",
+        "sv": "Hem → Jobbet: du blir cirka 12 min sen (framme 08:12, ville vara framme 08:00)."
+      }
+    },
+    {
+      "name": "arrive",
+      "type": "string",
+      "title": {
+        "en": "Earliest arrival",
+        "sv": "Tidigast framme"
+      },
+      "example": "08:12"
+    },
+    {
+      "name": "arrive_by",
+      "type": "string",
+      "title": {
+        "en": "Wanted to arrive by",
+        "sv": "Ville vara framme"
+      },
+      "example": "08:00"
+    },
+    {
+      "name": "minutes_late",
+      "type": "number",
+      "title": {
+        "en": "Minutes late",
+        "sv": "Minuter sen"
+      },
+      "example": 12
+    }
+  ]
+}

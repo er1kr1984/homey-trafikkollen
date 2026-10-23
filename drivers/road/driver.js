@@ -9,6 +9,7 @@ class RoadDriver extends Homey.Driver {
   async onInit() {
     this.homey.flow.getConditionCard('road_has_incidents')
       .registerRunListener(async ({ device }) => (device.getCapabilityValue('road_incidents') || 0) > 0);
+    this.homey.flow.getActionCard('test_incident').registerRunListener(async ({ device }) => device.testIncident());
     const setCamera = this.homey.flow.getActionCard('set_camera');
     setCamera.registerArgumentAutocompleteListener('camera', async (query, args) => {
       const lat = args.device && args.device.getSetting('lat'); const lon = args.device && args.device.getSetting('lon');

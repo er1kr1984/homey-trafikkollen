@@ -1,0 +1,44 @@
+{
+  "name": {
+    "en": "Time to leave",
+    "sv": "Dags att gå"
+  },
+  "height": 300,
+  "transparent": false,
+  "settings": [
+    {
+      "id": "source",
+      "type": "autocomplete",
+      "title": {
+        "en": "Commute or departure board",
+        "sv": "Pendling eller avgångstavla"
+      }
+    },
+    {
+      "id": "margin",
+      "type": "number",
+      "title": {
+        "en": "Safety margin (minutes)",
+        "sv": "Säkerhetsmarginal (minuter)"
+      },
+      "value": 2,
+      "min": 0,
+      "max": 15
+    },
+    {
+      "id": "show_next",
+      "type": "checkbox",
+      "title": {
+        "en": "Show the next two trips",
+        "sv": "Visa de två nästa resorna"
+      },
+      "value": true
+    }
+  ],
+  "api": {
+    "getLeave": {
+      "method": "GET",
+      "path": "/leave"
+    }
+  }
+}
